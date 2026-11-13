@@ -226,7 +226,7 @@ button:disabled {
 
   <div class="controls">
     <button id="startCamera" disabled>กำลังโหลด OpenCV.js...</button>
-    <button id="resetTracking" type="button">reset<br>hold tracking</button>
+    <button id="resetTracking" type="button">Reset<br>Hold Tracking</button>
     <div id="playerInfo">Player: กำลังเชื่อมต่อ...</div>
   </div>
 
@@ -1395,8 +1395,8 @@ button.addEventListener("click", async () => {
       canvasOutput.height
     );
 
-    button.textContent = "เปิดกล้องส่องหา";
-    status.textContent = "ปิดกล้องแล้ว";
+    button.textContent = "Open Camera";
+    status.textContent = "Close Camera";
 
     return;
   }
