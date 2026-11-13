@@ -31,26 +31,38 @@ body {
   background-size: 130px 130px, 170px 170px, 210px 210px, 150px 150px, auto, auto, auto;
 }
 header {
-  min-height: 98px;
+  min-height: 64px;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 18px 14px;
+  padding: 8px 12px;
   text-align: center;
+
   background:
-    radial-gradient(ellipse at 50% 130%, #6d28a8aa, transparent 62%),
-    linear-gradient(105deg, #11103c, #35104f 55%, #160c35);
-  border-bottom: 1px solid #7650a344;
-}
-h1 {
+    radial-gradient(
+      ellipse at 50% 130%,
+      #37105a55,
+      transparent 62%
+    ),
+    linear-gradient(
+      105deg,
+      #100a2d,
+      #200b38 55%,
+      #0b071c
+    );
+
+  border-bottom: 1px solid #7650a322; }
+
+  
+  h1 {
   margin: 0;
   color: #eee5f7;
-  font-family: "Comic Sans MS", "Segoe Print", cursive;
-  font-size: clamp(27px, 6vw, 34px);
-  font-weight: 400;
+  font-family: Arial, sans-serif;
+  font-size: clamp(23px, 5vw, 28px);
+  font-weight: 700;
   letter-spacing: .2px;
-  text-shadow: 0 2px 12px #d8baff55;
 }
+  
 main {
   width: 100%;
   max-width: 760px;
@@ -60,7 +72,7 @@ main {
 .camera-view {
   position: relative;
   width: 100%;
-  height: min(66vh, 680px);
+  height: min(70vh, 680px);
   min-height: 360px;
   background: #000000;
   border: 0;
@@ -109,14 +121,15 @@ canvas#canvasOutput {
   min-height: 49px;
   padding: 10px 18px;
   margin: 0;
-  border: 5px solid #260052;
-  border-radius: 19px;
-  background: linear-gradient(100deg, #4b1681, #5b268b);
-  color: #eee7f5;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.2;
-  box-shadow: 0 0 14px #5d00bd55;
+  border: 4px solid #18002f;
+
+background: linear-gradient(
+  100deg,
+  #281047,
+  #1b0a2e
+);
+
+box-shadow: 0 0 10px #2b075555;
   cursor: pointer;
 }
 #runAnimation:disabled { opacity: .5; }
@@ -136,15 +149,25 @@ button {
   width: 100%;
   min-height: 78px;
   padding: 12px 10px;
-  border: 1px solid #6a27a5aa;
+  border: 1px solid #38204f;
   border-radius: 20px;
-  background: linear-gradient(145deg, #310064, #210044);
+
+  /* ปุ่มสีม่วงเข้ม */
+  background: linear-gradient(
+  115deg,
+  #090014,
+  #130024 55%,
+  #070410
+);
+
   color: #eee6f7;
+  font-family: inherit;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
   cursor: pointer;
-  box-shadow: inset 0 1px 10px #6a2ba833;
+
+  box-shadow: inset 0 1px 8px #00000055;
 }
 button:active { transform: scale(.985); }
 button:disabled {
@@ -1396,7 +1419,7 @@ button.addEventListener("click", async () => {
     );
 
     button.textContent = "Open Camera";
-    status.textContent = "Close Camera";
+    status.textContent = "Open Camera";
 
     return;
   }
@@ -1426,7 +1449,7 @@ button.addEventListener("click", async () => {
     isProcessing = true;
     sendPlayerActive(true);
 
-    button.textContent = "ปิดกล้อง";
+    button.textContent = "Close Camera";
 
     status.textContent =
       "กล้องพร้อมแล้ว กำลังค้นหาขอบจอครั้งแรก";
