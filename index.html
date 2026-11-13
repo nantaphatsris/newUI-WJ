@@ -1,0 +1,1052 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Light The Star</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    :root { color-scheme: dark; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      background: #080516;
+      color: #eee8ff;
+      font-family: Arial, sans-serif;
+    }
+    header {
+      flex: 0 0 auto;
+      min-height: 98px;
+      display: grid;
+      place-items: center;
+      padding: 18px 16px;
+      text-align: center;
+      background:
+        radial-gradient(1px 1px at 12% 24%, #fff 98%, transparent),
+        radial-gradient(1.5px 1.5px at 27% 68%, #d9c5ff 98%, transparent),
+        radial-gradient(1px 1px at 73% 31%, #fff 98%, transparent),
+        radial-gradient(1px 1px at 88% 75%, #c8b2ff 98%, transparent),
+        radial-gradient(ellipse at 72% 20%, rgba(111,35,173,.5), transparent 55%),
+        linear-gradient(110deg, #111039, #25104d 55%, #120b2c);
+      background-size: 83px 71px, 117px 89px, 103px 97px, 139px 101px, auto, auto;
+      border-bottom: 1px solid rgba(191,150,255,.22);
+    }
+    h1 {
+      margin: 0;
+      color: #eee4ff;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      font-size: clamp(27px, 5vw, 34px);
+      font-weight: 400;
+      letter-spacing: .2px;
+      text-shadow: 0 0 14px rgba(205,171,255,.4);
+    }
+    main {
+      width: 100%;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 0;
+      flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .camera-view {
+      position: relative;
+      width: 100%;
+      height: clamp(430px, calc(100svh - 325px), 850px);
+      min-height: 430px;
+      background: #353535;
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+      flex: 1 0 auto;
+    }
+    video { display: none; }
+    canvas#canvasOutput {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .crosshair { display: none; }
+    .coordinates { display: none; }
+    .trigger-wrap {
+      position: absolute;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      width: min(224px, calc(100% - 36px));
+      z-index: 5;
+    }
+    button {
+      border: 1px solid rgba(206,174,255,.18);
+      border-radius: 20px;
+      background: linear-gradient(135deg, #2d006c, #4a08a0 58%, #29005e);
+      color: #eee6ff;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+      padding: 15px 18px;
+      cursor: pointer;
+      box-shadow: 0 5px 18px rgba(16,0,45,.35), inset 0 1px 0 rgba(255,255,255,.08);
+      transition: filter .15s ease, transform .15s ease, opacity .15s ease;
+    }
+    button:active:not(:disabled) { transform: scale(.98); }
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      filter: saturate(.65);
+    }
+    #runAnimation {
+      display: block !important;
+      width: 100%;
+      padding: 10px 16px;
+      border: 4px solid #26005c;
+      border-radius: 19px;
+      background: #51416a;
+      color: #f1eaff;
+      box-shadow: none;
+      white-space: nowrap;
+    }
+    .control-panel {
+      flex: 0 0 auto;
+      padding: 24px 22px 28px;
+      background:
+        radial-gradient(1px 1px at 15% 22%, rgba(255,255,255,.75) 98%, transparent),
+        radial-gradient(1px 1px at 78% 65%, rgba(208,182,255,.65) 98%, transparent),
+        radial-gradient(1px 1px at 48% 85%, rgba(255,255,255,.45) 98%, transparent),
+        radial-gradient(ellipse at 50% 0%, rgba(85,17,148,.45), transparent 68%),
+        linear-gradient(120deg, #08051a, #16052f 55%, #09051b);
+      background-size: 89px 73px, 127px 103px, 151px 113px, auto, auto;
+      border-top: 1px solid rgba(186,140,255,.2);
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 0 auto;
+      max-width: 650px;
+    }
+    .controls button {
+      min-height: 78px;
+      padding: 12px 14px;
+      font-size: 15px;
+      border-radius: 19px;
+    }
+    #startCamera, #resetTracking { width: 100%; }
+    #playerInfo {
+      margin: 14px auto 0;
+      min-height: 16px;
+      color: #d9cde9 !important;
+      font-size: 12px !important;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: .1px;
+    }
+    .debug-panel {
+      width: min(650px, 100%);
+      margin: 13px auto 0;
+      color: #b7a9cc;
+      font-size: 10px;
+    }
+    .debug-panel summary {
+      width: fit-content;
+      margin: 0 auto;
+      color: #9d8bb8;
+      cursor: pointer;
+      font-size: 10px;
+      user-select: none;
+    }
+    .debug-content {
+      margin-top: 9px;
+      padding: 9px 11px;
+      border: 1px solid rgba(174,133,225,.18);
+      border-radius: 9px;
+      background: rgba(5,2,18,.55);
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+    }
+    #status { margin: 0 0 5px; color: #d2c3e8; font-size: 10px; }
+    .debug-row { display: flex; flex-wrap: wrap; gap: 12px; }
+    .debug-row strong { color: #e0d4f2; font-weight: 600; }
+    .hint { margin-top: 7px; color: #9889aa; font-size: 10px; line-height: 1.55; }
+    @media (min-width: 700px) {
+      .camera-view { height: min(68vh, 760px); min-height: 480px; }
+      .control-panel { padding-bottom: 22px; }
+    }
+    @media (max-width: 380px) {
+      .control-panel { padding: 18px 14px 22px; }
+      .controls { gap: 10px; }
+      .controls button { font-size: 13px; min-height: 70px; }
+    }
+  </style>
+
+  <script
+    async
+    src="https://docs.opencv.org/4.x/opencv.js"
+    onload="onOpenCvReady();">
+  </script>
+</head>
+
+<body>
+  <header>
+    <h1>Light The Star</h1>
+  </header>
+
+  <main>
+    <div class="camera-view" id="cameraView">
+      <video id="camera" autoplay playsinline muted></video>
+      <canvas id="canvasOutput"></canvas>
+      <div class="trigger-wrap">
+        <button id="runAnimation" disabled>Trigger Animation</button>
+      </div>
+    </div>
+
+    <section class="control-panel">
+      <div class="controls">
+        <button id="startCamera" disabled>กำลังโหลด OpenCV.js...</button>
+        <button id="resetTracking" type="button">Reset<br>Hold Tracking</button>
+      </div>
+      <div id="playerInfo">Player: กำลังเชื่อมต่อ...</div>
+
+      <details class="debug-panel">
+        <summary>DEBUG / TRACKING INFO</summary>
+        <div class="debug-content">
+          <div id="status">สถานะ: รอโหลด OpenCV.js</div>
+          <div class="debug-row">
+            <span>Rectangle: <strong id="detectedStatus">NO</strong></span>
+            <span>X: <strong id="coordX">0.00</strong></span>
+            <span>Y: <strong id="coordY">0.00</strong></span>
+          </div>
+          <div class="hint">
+            ระบบตรวจจับกรอบสี่เหลี่ยมขอบดำที่มีพื้นที่ใหญ่ที่สุดโดยอัตโนมัติ<br>
+            กรอบสีเขียวอมฟ้าคือกรอบที่ตรวจพบ และ X/Y คือพิกัดจุดกึ่งกลางภาพภายในกรอบ (0.00–1.00)
+          </div>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <script>
+    const camera = document.getElementById("camera");
+    const canvasOutput = document.getElementById("canvasOutput");
+    const cameraView = document.getElementById("cameraView");
+    const button = document.getElementById("startCamera");
+    const status = document.getElementById("status");
+    const coordX = document.getElementById("coordX");
+    const coordY = document.getElementById("coordY");
+    const detectedStatus = document.getElementById("detectedStatus");
+    const ctx = canvasOutput.getContext("2d");
+
+    let stream = null;
+    let isOpenCvReady = false;
+    let isProcessing = false;
+
+    let selectedQuad = null;
+
+    // เก็บตำแหน่งล่าสุดเพื่อช่วยให้กรอบและพิกัดนิ่งขึ้น
+    let lostFrames = 0;
+    let previousQuadCenter = null;
+    let lastGoodXY = { x: 0, y: 0 };
+    let smoothedXY = null;
+
+    // ขนาดกรอบขั้นต่ำและสูงสุดเมื่อเทียบกับภาพกล้อง
+    const MIN_AREA_RATIO = 0.008;
+    const MAX_AREA_RATIO = 0.92;
+
+    // เกณฑ์ตรวจจับขอบดำ (ปรับได้ตามแสงหน้างาน)
+    const BLACK_THRESHOLD = 105;
+    const MIN_BORDER_DARKNESS = 0.62;
+    const MIN_INSIDE_BRIGHTNESS_GAP = 10;
+
+    // ปรับความสมูทของพิกัด X/Y
+    // ค่ายิ่งต่ำยิ่งนิ่ง แต่ตอบสนองช้าลง
+    const XY_SMOOTHING_ALPHA = 0.18;
+
+    // ตัดการเปลี่ยนแปลงเล็กมากที่เกิดจาก noise
+    const XY_DEADBAND = 0.0015;
+
+    // เตรียม OpenCV.js
+    function onOpenCvReady() {
+      if (typeof cv === "undefined") {
+        status.textContent =
+          "โหลด OpenCV.js ไม่สำเร็จ ลองรีเฟรชหน้าเว็บ";
+        return;
+      }
+
+      cv.onRuntimeInitialized = () => {
+        isOpenCvReady = true;
+        status.textContent =
+          "สถานะ: OpenCV.js พร้อมทำงาน กดเปิดกล้องได้เลย";
+        button.textContent = "เปิดกล้องส่องหา";
+        button.disabled = false;
+      };
+
+      if (cv.Mat) {
+        isOpenCvReady = true;
+        status.textContent =
+          "สถานะ: OpenCV.js พร้อมทำงาน กดเปิดกล้องได้เลย";
+        button.textContent = "เปิดกล้องส่องหา";
+        button.disabled = false;
+      }
+    }
+
+    function setTargetStatus(found) {
+      detectedStatus.textContent = found ? "YES" : "NO";
+      detectedStatus.style.color =
+        found ? "#0bf4ec" : "#ff4d4d";
+    }
+
+    function displayCoordinates(x, y, found) {
+      coordX.textContent = Number(x).toFixed(2);
+      coordY.textContent = Number(y).toFixed(2);
+      setTargetStatus(found);
+    }
+
+    // WebSocket → Node.js → OSC → TouchDesigner
+    // Cloudflare Tunnel hostname ต้อง forward ไปยัง server.js port 8080
+    const WS_ENDPOINT = "ws://localhost:8080";
+    const playerInfo = document.getElementById("playerInfo");
+    const runAnimationButton = document.getElementById("runAnimation");
+    const resetTrackingButton = document.getElementById("resetTracking");
+    let socket = null;
+    let playerId = null;
+    let lastXYSendTime = 0;
+    let constellationComplete = false;
+
+    function connectWebSocket() {
+      if (socket && [WebSocket.OPEN, WebSocket.CONNECTING].includes(socket.readyState)) return;
+      socket = new WebSocket(WS_ENDPOINT);
+      socket.addEventListener("open", () => {
+        playerInfo.textContent = "เชื่อมต่อแล้ว กำลังรับ Player ID...";
+      });
+      socket.addEventListener("message", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "welcome") {
+            playerId = data.playerId;
+            playerInfo.textContent = `Player ${playerId} / เชื่อมต่อแล้ว`;
+            if (stream) sendPlayerActive(true);
+          } else if (data.type === "error") {
+            playerInfo.textContent = data.message || "Server error";
+          }
+        } catch (e) { console.warn("WebSocket message parse error", e); }
+      });
+      socket.addEventListener("close", () => {
+        playerId = null;
+        playerInfo.textContent = "เชื่อมต่อหลุด กำลัง reconnect...";
+        setTimeout(connectWebSocket, 1500);
+      });
+      socket.addEventListener("error", () => {
+        playerInfo.textContent = "WebSocket เชื่อมต่อไม่สำเร็จ";
+      });
+    }
+
+    function wsSend(data) {
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
+        return true;
+      }
+      return false;
+    }
+    function sendPlayerActive(active) {
+      wsSend({ type: "active", active: Boolean(active) });
+    }
+    function sendXYToTouchDesigner(x, y) {
+      const now = performance.now();
+      if (now - lastXYSendTime < 50) return;
+      lastXYSendTime = now;
+      wsSend({
+        type: "xy",
+        x: Math.max(0, Math.min(1, Number(x))),
+        y: Math.max(0, Math.min(1, Number(y)))
+      });
+    }
+
+    // เมื่อโค้ดตรวจดาวพบครบทุกดวง ให้เรียก markConstellationComplete()
+    function markConstellationComplete() {
+      constellationComplete = true;
+      runAnimationButton.disabled = false;
+      status.textContent = "กลุ่มดาวครบแล้ว! กดปุ่มเพื่อรันอนิเมชัน";
+    }
+    resetTrackingButton.addEventListener("click", () => {
+      selectedQuad = null;
+      previousQuadCenter = null;
+      lostFrames = 0;
+      smoothedXY = null;
+      lastGoodXY = { x: 0, y: 0 };
+      displayCoordinates(0, 0, false);
+      if (stream && isProcessing) {
+        status.textContent = "สถานะ: รีเซ็ตการตรวจจับแล้ว กำลังค้นหากรอบใหม่...";
+      } else {
+        status.textContent = "สถานะ: รีเซ็ตค่าการตรวจจับแล้ว เปิดกล้องเพื่อเริ่มค้นหาใหม่";
+      }
+    });
+
+    runAnimationButton.addEventListener("click", () => {
+      if (!constellationComplete) return;
+      if (!wsSend({ type: "runAnimation" })) {
+        status.textContent = "ยังไม่เชื่อมต่อเซิร์ฟเวอร์ จึงส่งคำสั่งไม่ได้";
+        return;
+      }
+      status.textContent = "ส่งคำสั่งรันอนิเมชันไป TouchDesigner แล้ว";
+    });
+
+    connectWebSocket();
+
+    function polygonArea(points) {
+      let area = 0;
+
+      for (let i = 0; i < points.length; i++) {
+        const a = points[i];
+        const b = points[(i + 1) % points.length];
+
+        area += a.x * b.y - b.x * a.y;
+      }
+
+      return Math.abs(area / 2);
+    }
+
+    function centerOf(points) {
+      return {
+        x: points.reduce((sum, p) => sum + p.x, 0) /
+          points.length,
+        y: points.reduce((sum, p) => sum + p.y, 0) /
+          points.length
+      };
+    }
+
+    // เรียงมุมของกรอบเพื่อให้ได้ TL, TR, BR, BL
+    function orderQuad(points) {
+      const center = centerOf(points);
+
+      const sorted = points.slice().sort((a, b) =>
+        Math.atan2(a.y - center.y, a.x - center.x) -
+        Math.atan2(b.y - center.y, b.x - center.x)
+      );
+
+      let start = 0;
+      let minSum = Infinity;
+
+      sorted.forEach((p, i) => {
+        const sum = p.x + p.y;
+
+        if (sum < minSum) {
+          minSum = sum;
+          start = i;
+        }
+      });
+
+      let ordered = sorted
+        .slice(start)
+        .concat(sorted.slice(0, start));
+
+      const cross =
+        (ordered[1].x - ordered[0].x) *
+        (ordered[2].y - ordered[1].y) -
+        (ordered[1].y - ordered[0].y) *
+        (ordered[2].x - ordered[1].x);
+
+      if (cross < 0) {
+        ordered = [
+          ordered[0],
+          ordered[3],
+          ordered[2],
+          ordered[1]
+        ];
+      }
+
+      if (ordered[1].x < ordered[3].x) {
+        ordered = [
+          ordered[0],
+          ordered[3],
+          ordered[2],
+          ordered[1]
+        ];
+      }
+
+      return ordered;
+    }
+
+    // ตรวจว่าขอบทั้งสี่ด้านเป็นสีดำ และพื้นที่ด้านในสว่างกว่าขอบ
+    // ช่วยกรองกรอบสี่เหลี่ยมทั่วไปที่ไม่ใช่กรอบดำออก
+    function isBlackBorderRectangle(gray, points, width, height) {
+      const center = centerOf(points);
+      let darkSamples = 0;
+      let totalSamples = 0;
+      let borderBrightness = 0;
+      let insideBrightness = 0;
+      let insideSamples = 0;
+
+      const sampleGray = (x, y) => {
+        const px = Math.max(0, Math.min(width - 1, Math.round(x)));
+        const py = Math.max(0, Math.min(height - 1, Math.round(y)));
+        return gray.ucharAt(py, px);
+      };
+
+      for (let edge = 0; edge < 4; edge++) {
+        const a = points[edge];
+        const b = points[(edge + 1) % 4];
+
+        // เก็บตัวอย่างหลายจุดตลอดแนวขอบ ไม่อ่านเฉพาะมุม
+        for (let step = 2; step <= 8; step++) {
+          const t = step / 10;
+          const edgeX = a.x + (b.x - a.x) * t;
+          const edgeY = a.y + (b.y - a.y) * t;
+
+          // จุดบนแนวขอบและจุดเยื้องเข้าด้านในเล็กน้อย
+          for (const inward of [0.008, 0.018, 0.03, 0.045]) {
+            const x = edgeX + (center.x - edgeX) * inward;
+            const y = edgeY + (center.y - edgeY) * inward;
+            const value = sampleGray(x, y);
+            totalSamples++;
+            borderBrightness += value;
+            if (value <= BLACK_THRESHOLD) darkSamples++;
+          }
+
+          // จุดด้านในกรอบ ใช้เทียบกับความมืดของขอบ
+          const innerX = edgeX + (center.x - edgeX) * 0.16;
+          const innerY = edgeY + (center.y - edgeY) * 0.16;
+          insideBrightness += sampleGray(innerX, innerY);
+          insideSamples++;
+        }
+      }
+
+      if (!totalSamples || !insideSamples) return false;
+
+      const darkRatio = darkSamples / totalSamples;
+      const avgBorder = borderBrightness / totalSamples;
+      const avgInside = insideBrightness / insideSamples;
+
+      return (
+        darkRatio >= MIN_BORDER_DARKNESS &&
+        avgBorder <= BLACK_THRESHOLD &&
+        avgInside >= avgBorder + MIN_INSIDE_BRIGHTNESS_GAP
+      );
+    }
+
+    // ตรวจหารูปสี่เหลี่ยมขอบดำจากภาพกล้อง
+    function extractCandidates(srcMat, width, height) {
+      const candidates = [];
+
+      let gray = new cv.Mat();
+      let blurred = new cv.Mat();
+      let edges = new cv.Mat();
+      let closed = new cv.Mat();
+      let contours = new cv.MatVector();
+      let hierarchy = new cv.Mat();
+      let kernel = null;
+
+      try {
+        cv.cvtColor(srcMat, gray, cv.COLOR_RGBA2GRAY);
+
+        cv.GaussianBlur(
+          gray,
+          blurred,
+          new cv.Size(7, 7),
+          0
+        );
+
+        // แยกพิกเซลมืดออกมา เพื่อหาเส้นขอบสีดำโดยตรง
+        cv.threshold(
+          blurred,
+          edges,
+          BLACK_THRESHOLD,
+          255,
+          cv.THRESH_BINARY_INV
+        );
+
+        // เชื่อมส่วนของขอบดำที่ขาดเล็กน้อย
+        kernel = cv.getStructuringElement(
+          cv.MORPH_RECT,
+          new cv.Size(5, 5)
+        );
+
+        cv.morphologyEx(
+          edges,
+          closed,
+          cv.MORPH_CLOSE,
+          kernel
+        );
+
+        cv.findContours(
+          closed,
+          contours,
+          hierarchy,
+          cv.RETR_LIST,
+          cv.CHAIN_APPROX_SIMPLE
+        );
+
+        const imageArea = width * height;
+
+        for (let i = 0; i < contours.size(); i++) {
+          const contour = contours.get(i);
+          const approx = new cv.Mat();
+
+          try {
+            const area = Math.abs(
+              cv.contourArea(contour)
+            );
+
+            const ratio = area / imageArea;
+
+            if (
+              ratio < MIN_AREA_RATIO ||
+              ratio > MAX_AREA_RATIO
+            ) {
+              continue;
+            }
+
+            const perimeter = cv.arcLength(contour, true);
+
+            cv.approxPolyDP(
+              contour,
+              approx,
+              0.03 * perimeter,
+              true
+            );
+
+            if (
+              approx.rows !== 4 ||
+              !cv.isContourConvex(approx)
+            ) {
+              continue;
+            }
+
+            const points = [];
+
+            for (let j = 0; j < 4; j++) {
+              const ptr = approx.intPtr(j, 0);
+
+              points.push({
+                x: ptr[0],
+                y: ptr[1]
+              });
+            }
+
+            const ordered = orderQuad(points);
+            const areaQuad = polygonArea(ordered);
+
+            if (areaQuad < MIN_AREA_RATIO * imageArea) {
+              continue;
+            }
+
+            // ต้องเป็นสี่เหลี่ยมที่มีขอบดำจริง ไม่ใช่แค่ขอบวัตถุทั่วไป
+            if (!isBlackBorderRectangle(gray, ordered, width, height)) {
+              continue;
+            }
+
+            const xs = ordered.map(p => p.x);
+            const ys = ordered.map(p => p.y);
+
+            const boxW =
+              Math.max(...xs) - Math.min(...xs);
+
+            const boxH =
+              Math.max(...ys) - Math.min(...ys);
+
+            if (
+              boxW < width * 0.12 ||
+              boxH < height * 0.07
+            ) {
+              continue;
+            }
+
+            const ratioWH = boxW / Math.max(boxH, 1);
+
+            if (ratioWH < 0.75 || ratioWH > 5.5) {
+              continue;
+            }
+
+            const center = centerOf(ordered);
+
+            candidates.push({
+              points: ordered,
+              area: areaQuad,
+              center
+            });
+          } finally {
+            approx.delete();
+            contour.delete();
+          }
+        }
+      } finally {
+        gray.delete();
+        blurred.delete();
+        edges.delete();
+        closed.delete();
+        contours.delete();
+        hierarchy.delete();
+
+        if (kernel) kernel.delete();
+      }
+
+      return candidates;
+    }
+
+    // เลือกกรอบขอบดำที่มีพื้นที่มากที่สุดในทุกเฟรมโดยอัตโนมัติ
+    // ไม่ต้องแตะหน้าจอ และไม่ล็อกกรอบเดิมถ้ามีกรอบที่ใหญ่กว่าเข้ามา
+    function chooseCandidate(candidates) {
+      if (!candidates.length) return null;
+      return candidates.slice().sort((a, b) => b.area - a.area)[0];
+    }
+
+    // คำนวณพิกัดจุดกลางภาพในกรอบที่เลือก
+    // คงวิธีคำนวณ Perspective Transform และแกน X/Y เดิม
+    function calculateNormalizedXY(quad, width, height) {
+      let source = null;
+      let destination = null;
+      let transform = null;
+      let centerPoint = null;
+      let result = null;
+
+      try {
+        source = cv.matFromArray(
+          4, 1, cv.CV_32FC2,
+          quad.flatMap(p => [p.x, p.y])
+        );
+
+        destination = cv.matFromArray(
+          4, 1, cv.CV_32FC2,
+          [0, 0, 1, 0, 1, 1, 0, 1]
+        );
+
+        transform = cv.getPerspectiveTransform(
+          source,
+          destination
+        );
+
+        centerPoint = cv.matFromArray(
+          1, 1, cv.CV_32FC2,
+          [width / 2, height / 2]
+        );
+
+        result = new cv.Mat();
+
+        cv.perspectiveTransform(
+          centerPoint,
+          result,
+          transform
+        );
+
+        const rawX = result.data32F[0];
+        const rawY = result.data32F[1];
+
+        if (
+          !Number.isFinite(rawX) ||
+          !Number.isFinite(rawY)
+        ) {
+          return lastGoodXY;
+        }
+
+        const x = Math.max(0, Math.min(1, rawX));
+        const y = Math.max(0, Math.min(1, rawY));
+
+        // Exponential smoothing ลดการสั่นของ X/Y
+        if (!smoothedXY) {
+          smoothedXY = { x, y };
+        } else {
+          let dx = x - smoothedXY.x;
+          let dy = y - smoothedXY.y;
+
+          // ตัดการเปลี่ยนแปลงจิ๋ว ๆ จาก noise ของกล้อง
+          if (Math.abs(dx) < XY_DEADBAND) dx = 0;
+          if (Math.abs(dy) < XY_DEADBAND) dy = 0;
+
+          smoothedXY = {
+            x: Math.max(0, Math.min(1,
+              smoothedXY.x + dx * XY_SMOOTHING_ALPHA)),
+            y: Math.max(0, Math.min(1,
+              smoothedXY.y + dy * XY_SMOOTHING_ALPHA))
+          };
+        }
+
+        lastGoodXY = { ...smoothedXY };
+        return lastGoodXY;
+      } catch (error) {
+        console.error("คำนวณพิกัดไม่สำเร็จ:", error);
+        return lastGoodXY;
+      } finally {
+        [
+          source,
+          destination,
+          transform,
+          centerPoint,
+          result
+        ].forEach(mat => {
+          if (mat) mat.delete();
+        });
+      }
+    }
+
+    function processVideo() {
+      if (!isProcessing) return;
+
+      if (!camera.videoWidth || !camera.videoHeight) {
+        requestAnimationFrame(processVideo);
+        return;
+      }
+
+      const width = camera.videoWidth;
+      const height = camera.videoHeight;
+
+      if (
+        canvasOutput.width !== width ||
+        canvasOutput.height !== height
+      ) {
+        canvasOutput.width = width;
+        canvasOutput.height = height;
+      }
+
+      ctx.drawImage(camera, 0, 0, width, height);
+
+      let srcMat = null;
+
+      try {
+        srcMat = cv.imread(canvasOutput);
+
+        const candidates = extractCandidates(
+          srcMat,
+          width,
+          height
+        );
+
+        const chosen = chooseCandidate(candidates);
+
+        if (chosen) {
+          selectedQuad = chosen.points.map(p => ({
+            x: p.x,
+            y: p.y
+          }));
+
+          previousQuadCenter = { ...chosen.center };
+          lostFrames = 0;
+
+          const xy = calculateNormalizedXY(
+            selectedQuad,
+            width,
+            height
+          );
+
+          displayCoordinates(xy.x, xy.y, true);
+          sendXYToTouchDesigner(xy.x, xy.y);
+
+          status.textContent =
+            "สถานะ: ตรวจพบกรอบขอบดำที่ใหญ่ที่สุดแล้ว";
+
+          drawFrameOverlays(
+            srcMat,
+            [],
+            selectedQuad
+          );
+        } else {
+          lostFrames++;
+          selectedQuad = null;
+          previousQuadCenter = null;
+          smoothedXY = null;
+
+          displayCoordinates(0, 0, false);
+          status.textContent =
+            "สถานะ: กำลังค้นหาสี่เหลี่ยมขอบดำที่ใหญ่ที่สุด...";
+
+          drawFrameOverlays(
+            srcMat,
+            candidates,
+            null
+          );
+        }
+
+        cv.imshow(canvasOutput, srcMat);
+      } catch (error) {
+        console.error("OpenCV error:", error);
+
+        status.textContent =
+          "เกิดข้อผิดพลาดในการตรวจจับ ดูรายละเอียดใน Console";
+      } finally {
+        if (srcMat) srcMat.delete();
+      }
+
+      requestAnimationFrame(processVideo);
+    }
+
+    // วาดกรอบตามมุมจริงทั้งสี่มุม
+    function drawOpenCvPolygon(
+      mat,
+      points,
+      color,
+      thickness
+    ) {
+      const cvColor =
+        color === "#0bf4ec"
+          ? new cv.Scalar(11, 244, 236, 255)
+          : new cv.Scalar(255, 180, 0, 255);
+
+      for (let i = 0; i < points.length; i++) {
+        const a = points[i];
+        const b = points[(i + 1) % points.length];
+
+        cv.line(
+          mat,
+          new cv.Point(
+            Math.round(a.x),
+            Math.round(a.y)
+          ),
+          new cv.Point(
+            Math.round(b.x),
+            Math.round(b.y)
+          ),
+          cvColor,
+          thickness
+        );
+
+        cv.circle(
+          mat,
+          new cv.Point(
+            Math.round(a.x),
+            Math.round(a.y)
+          ),
+          6,
+          cvColor,
+          -1
+        );
+      }
+    }
+
+    // วาดกรอบที่ตรวจพบ
+    function drawFrameOverlays(
+      mat,
+      candidates,
+      chosenPoints
+    ) {
+      candidates.forEach(c => {
+        if (
+          chosenPoints &&
+          c.points.every((p, i) =>
+            Math.hypot(
+              p.x - chosenPoints[i].x,
+              p.y - chosenPoints[i].y
+            ) < 3
+          )
+        ) {
+          return;
+        }
+
+        drawOpenCvPolygon(
+          mat,
+          c.points,
+          "orange",
+          2
+        );
+      });
+
+      if (chosenPoints) {
+        drawOpenCvPolygon(
+          mat,
+          chosenPoints,
+          "#0bf4ec",
+          4
+        );
+      }
+    }
+
+    // เปิด/ปิดกล้องและส่งสถานะ Active/Inactive
+    button.addEventListener("click", async () => {
+      if (!isOpenCvReady) return;
+
+      if (stream) {
+        isProcessing = false;
+        sendPlayerActive(false);
+
+        stream.getTracks().forEach(track => track.stop());
+
+        stream = null;
+        camera.srcObject = null;
+
+        selectedQuad = null;
+        previousQuadCenter = null;
+        smoothedXY = null;
+        displayCoordinates(0, 0, false);
+
+        ctx.clearRect(
+          0,
+          0,
+          canvasOutput.width,
+          canvasOutput.height
+        );
+
+        button.textContent = "เปิดกล้องส่องหา";
+        status.textContent = "สถานะ: ปิดกล้องแล้ว";
+
+        return;
+      }
+
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          throw new Error(
+            "เบราว์เซอร์ไม่รองรับกล้อง กรุณาเปิดผ่าน HTTPS หรือ localhost"
+          );
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" }
+          },
+          audio: false
+        });
+
+        camera.srcObject = stream;
+
+        await camera.play();
+
+        selectedQuad = null;
+        previousQuadCenter = null;
+        lostFrames = 0;
+        smoothedXY = null;
+        lastGoodXY = { x: 0, y: 0 };
+        isProcessing = true;
+        sendPlayerActive(true);
+
+        button.textContent = "ปิดกล้อง";
+
+        status.textContent =
+          "สถานะ: กล้องทำงานแล้ว กำลังหากรอบขอบดำที่ใหญ่ที่สุด";
+
+        requestAnimationFrame(processVideo);
+      } catch (error) {
+        status.textContent =
+          "เปิดกล้องไม่สำเร็จ: " + error.message;
+
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+
+        stream = null;
+        isProcessing = false;
+        sendPlayerActive(false);
+      }
+    });
+
+    window.addEventListener("pagehide", () => {
+      sendPlayerActive(false);
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      if (socket) socket.close();
+    });
+
+    // ตรวจสอบว่า OpenCV พร้อมทำงานหรือยัง
+    window.addEventListener("load", () => {
+      if (
+        typeof cv !== "undefined" &&
+        cv.Mat &&
+        !isOpenCvReady
+      ) {
+        onOpenCvReady();
+      }
+    });
+  </script>
+</body>
+</html>
