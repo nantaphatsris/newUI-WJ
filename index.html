@@ -38,31 +38,23 @@ header {
   padding: 8px 12px;
   text-align: center;
 
+  /* ใช้ภาพกาแล็กซีที่ผู้ใช้ส่งมาเป็นพื้นหลังของแถบหัวเว็บ */
   background:
-    radial-gradient(
-      ellipse at 50% 130%,
-      #37105a55,
-      transparent 62%
-    ),
-    linear-gradient(
-      105deg,
-      #100a2d,
-      #200b38 55%,
-      #0b071c
-    );
+    linear-gradient(rgba(10, 3, 24, .14), rgba(10, 3, 24, .14)),
+    url("picPanelLightthestar.jpg") center center / cover no-repeat;
 
-  border-bottom: 1px solid #7650a322; }
-
-  
-  h1 {
+  border-bottom: 1px solid #7650a344;
+}
+h1 {
   margin: 0;
   color: #eee5f7;
+  /* ใช้ฟอนต์เดียวกับปุ่ม Reset */
   font-family: Arial, sans-serif;
-  font-size: clamp(23px, 5vw, 28px);
+  font-size: clamp(21px, 5vw, 26px);
   font-weight: 700;
   letter-spacing: .2px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .65);
 }
-  
 main {
   width: 100%;
   max-width: 760px;
@@ -72,9 +64,9 @@ main {
 .camera-view {
   position: relative;
   width: 100%;
-  height: min(70vh, 680px);
+  height: min(66vh, 680px);
   min-height: 360px;
-  background: #000000;
+  background: #353535;
   border: 0;
   border-radius: 0;
   overflow: hidden;
@@ -121,15 +113,14 @@ canvas#canvasOutput {
   min-height: 49px;
   padding: 10px 18px;
   margin: 0;
-  border: 4px solid #18002f;
-
-background: linear-gradient(
-  100deg,
-  #281047,
-  #1b0a2e
-);
-
-box-shadow: 0 0 10px #2b075555;
+  border: 5px solid #260052;
+  border-radius: 19px;
+  background: linear-gradient(100deg, #4b1681, #5b268b);
+  color: #eee7f5;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow: 0 0 14px #5d00bd55;
   cursor: pointer;
 }
 #runAnimation:disabled { opacity: .5; }
@@ -149,25 +140,15 @@ button {
   width: 100%;
   min-height: 78px;
   padding: 12px 10px;
-  border: 1px solid #38204f;
+  border: 1px solid #6a27a5aa;
   border-radius: 20px;
-
-  /* ปุ่มสีม่วงเข้ม */
-  background: linear-gradient(
-  115deg,
-  #090014,
-  #130024 55%,
-  #070410
-);
-
+  background: linear-gradient(145deg, #310064, #210044);
   color: #eee6f7;
-  font-family: inherit;
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
   cursor: pointer;
-
-  box-shadow: inset 0 1px 8px #00000055;
+  box-shadow: inset 0 1px 10px #6a2ba833;
 }
 button:active { transform: scale(.985); }
 button:disabled {
@@ -249,7 +230,7 @@ button:disabled {
 
   <div class="controls">
     <button id="startCamera" disabled>กำลังโหลด OpenCV.js...</button>
-    <button id="resetTracking" type="button">Reset<br>Hold Tracking</button>
+    <button id="resetTracking" type="button">reset<br>hold tracking</button>
     <div id="playerInfo">Player: กำลังเชื่อมต่อ...</div>
   </div>
 
@@ -1418,8 +1399,8 @@ button.addEventListener("click", async () => {
       canvasOutput.height
     );
 
-    button.textContent = "Open Camera";
-    status.textContent = "Open Camera";
+    button.textContent = "เปิดกล้องส่องหา";
+    status.textContent = "ปิดกล้องแล้ว";
 
     return;
   }
@@ -1449,7 +1430,7 @@ button.addEventListener("click", async () => {
     isProcessing = true;
     sendPlayerActive(true);
 
-    button.textContent = "Close Camera";
+    button.textContent = "ปิดกล้อง";
 
     status.textContent =
       "กล้องพร้อมแล้ว กำลังค้นหาขอบจอครั้งแรก";
