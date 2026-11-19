@@ -216,6 +216,106 @@ button:disabled {
   button { font-size: 14px; }
 }
 
+
+/* ========================================
+   CONSTELLATION DISCOVERY OVERLAY
+   ======================================== */
+#discoveryOverlay {
+  position: fixed;
+  inset: 64px 0 0;
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+  background: #080516;
+}
+#discoveryOverlay.is-open { display: flex; }
+.discovery-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px;
+  background: rgba(8, 5, 22, .96);
+}
+#closeDiscovery {
+  width: 42px;
+  min-height: 42px;
+  padding: 0;
+  border: 1px solid #8b70a8;
+  border-radius: 50%;
+  background: #241239;
+  color: #fff;
+  font-size: 25px;
+  line-height: 1;
+}
+.discovery-content {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 0 16px 28px;
+}
+.discovery-video-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid #7650a3;
+  border-radius: 12px;
+  background: #000;
+  box-shadow: 0 8px 28px #0008;
+}
+#discoveryVideo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+#videoFallback {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #d8c7ed;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.discovery-info {
+  margin-top: 14px;
+  padding: 20px;
+  border: 1px solid #d7c8f0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #eee8fa, #dcd0f0);
+  color: #28183c;
+}
+#discoverySymbol {
+  margin: 0 0 4px;
+  color: #74539b;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+#discoveryTitle {
+  margin: 0 0 12px;
+  color: #28183c;
+  font-size: clamp(23px, 5vw, 32px);
+}
+#discoveryDescription {
+  margin: 0;
+  color: #38284b;
+  font-size: 15px;
+  line-height: 1.85;
+  white-space: pre-line;
+}
+@media (max-width: 480px) {
+  #discoveryOverlay { inset-top: 64px; }
+  .discovery-content { padding: 0 10px 20px; }
+  .discovery-info { padding: 16px; }
+}
+
 </style>
 
 <script async
@@ -228,6 +328,24 @@ button:disabled {
 <header>
   <h1>Light The Star</h1>
 </header>
+
+<section id="discoveryOverlay" aria-hidden="true" aria-label="ข้อมูลกลุ่มดาว">
+  <div class="discovery-topbar">
+    <button id="closeDiscovery" type="button" aria-label="ปิดหน้าต่าง">×</button>
+  </div>
+  <div class="discovery-content">
+    <div class="discovery-video-wrap">
+      <video id="discoveryVideo" autoplay muted loop playsinline preload="metadata"></video>
+      <div id="videoFallback">ยังไม่มีไฟล์ Animation ของกลุ่มดาวนี้<br>นำไฟล์วิดีโอไปใส่ในโฟลเดอร์ animations แล้วตั้งชื่อให้ตรงกับราศีได้เลย</div>
+    </div>
+    <article class="discovery-info">
+      <p id="discoverySymbol">CONSTELLATION</p>
+      <h2 id="discoveryTitle">Constellation</h2>
+      <p id="discoveryDescription"></p>
+    </article>
+  </div>
+</section>
+
 
 <main>
   <div class="camera-view" id="cameraView">
@@ -256,6 +374,7 @@ button:disabled {
   </div>
 </main>
 
+<script src="constellations.js"></script>
 <script>
 const camera = document.getElementById("camera");
 const canvasOutput = document.getElementById("canvasOutput");
@@ -434,7 +553,7 @@ function displayCoordinates(x, y) {
 // ========================================
 
 const WS_ENDPOINT =
-  "wss://ensemble-reproduced-thinks-with.trycloudflare.com";
+  "wss://athletes-ser-roads-introduce.trycloudflare.com";
 
 let socket = null;
 let playerId = null;
@@ -522,32 +641,91 @@ function sendXYToTouchDesigner(x, y) {
 // ANIMATION BUTTON
 // ========================================
 
+// ========================================
+// WEBSITE CONSTELLATION ANIMATION
+// ========================================
+
+const discoveryOverlay = document.getElementById("discoveryOverlay");
+const discoveryVideo = document.getElementById("discoveryVideo");
+const videoFallback = document.getElementById("videoFallback");
+const discoverySymbol = document.getElementById("discoverySymbol");
+const discoveryTitle = document.getElementById("discoveryTitle");
+const discoveryDescription = document.getElementById("discoveryDescription");
+const closeDiscoveryButton = document.getElementById("closeDiscovery");
+
+let isDiscoveryOpen = false;
+
+function openConstellationInfo(zone) {
+  if (!zone || !CONSTELLATION_INFO[zone.id]) return;
+
+  const info = CONSTELLATION_INFO[zone.id];
+  isDiscoveryOpen = true;
+
+  discoverySymbol.textContent = info.symbol || "CONSTELLATION";
+  discoveryTitle.textContent =
+    (info.thaiName || zone.name) + " — " + (info.name || zone.name);
+  discoveryDescription.textContent =
+    info.description || "ยังไม่มีคำอธิบายสำหรับกลุ่มดาวนี้";
+
+  // ตั้งค่า path ของวิดีโอจากไฟล์ constellations.js
+  discoveryVideo.pause();
+  discoveryVideo.onerror = () => {
+    discoveryVideo.style.display = "none";
+    videoFallback.style.display = "flex";
+  };
+  discoveryVideo.onloadeddata = () => {
+    discoveryVideo.style.display = "block";
+    videoFallback.style.display = "none";
+  };
+
+  discoveryVideo.src = info.video || "";
+  discoveryVideo.load();
+
+  if (info.video) {
+    discoveryVideo.play().catch(() => {
+      // บางเบราว์เซอร์อาจรอให้ผู้ใช้แตะหน้าจอก่อนเริ่มเล่น
+      videoFallback.style.display = "flex";
+      videoFallback.textContent =
+        "แตะวิดีโอเพื่อเริ่มเล่น หรือเช็กว่าไฟล์ Animation อยู่ในโฟลเดอร์ animations แล้ว";
+    });
+  } else {
+    discoveryVideo.style.display = "none";
+    videoFallback.style.display = "flex";
+  }
+
+  discoveryOverlay.classList.add("is-open");
+  discoveryOverlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closeConstellationInfo() {
+  isDiscoveryOpen = false;
+  discoveryOverlay.classList.remove("is-open");
+  discoveryOverlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+
+  discoveryVideo.pause();
+  discoveryVideo.removeAttribute("src");
+  discoveryVideo.load();
+
+  // ไม่ปิดกล้อง ไม่รีเซ็ตการล็อก และไม่เปลี่ยนพิกัดล่าสุด
+  // processVideo จะทำงานต่อเองเมื่อปิดหน้าต่าง
+}
+
 runAnimationButton.addEventListener("click", () => {
-  if (!discoveryReady || !discoveredZone) return;
+  if (!discoveryReady || !discoveredZone || isDiscoveryOpen) return;
 
   const selectedConstellation = discoveredZone;
 
-  if (!wsSend({
-    type: "runAnimation",
-    constellationId: selectedConstellation.id,
-    constellationName: selectedConstellation.name
-  })) {
-    status.textContent =
-      "ยังไม่เชื่อมต่อเซิร์ฟเวอร์ จึงส่งคำสั่งไม่ได้";
-    return;
-  }
+  // เก็บระบบส่ง XY ไป TouchDesigner ตามเดิม
+  // แต่การเล่น Animation จะเกิดบนหน้าเว็บไซต์ ไม่ส่งคำสั่งไป TD
+  openConstellationInfo(selectedConstellation);
 
-  const name = selectedConstellation.name;
-
-  status.textContent =
-    "ส่งคำสั่งเล่นอนิเมชัน " + name + " ไป TouchDesigner แล้ว";
-
-  // ซ่อนปุ่มหลังจากกด
   hideDiscoveryButton();
-
-  // ต้องออกจากพื้นที่ก่อนจึงจะค้นพบใหม่ได้
   waitingForExit = true;
 });
+
+closeDiscoveryButton.addEventListener("click", closeConstellationInfo);
 
 // เริ่มเชื่อมต่อ
 connectWebSocket();
@@ -1198,6 +1376,13 @@ function drawFeatures(mat, points) {
 function processVideo() {
   if (!isProcessing) return;
 
+  // ระหว่างเปิดข้อมูลกลุ่มดาว ให้ค้างภาพและพิกัดล่าสุดไว้
+  // แต่ยังคงกล้องที่เปิดอยู่ ไม่ต้องปิดหรือเริ่มกล้องใหม่
+  if (isDiscoveryOpen) {
+    requestAnimationFrame(processVideo);
+    return;
+  }
+
   if (!camera.videoWidth || !camera.videoHeight) {
     requestAnimationFrame(processVideo);
     return;
@@ -1286,7 +1471,7 @@ function processVideo() {
         setTargetStatus(true);
         setTrackingStatus(false);
 
-        // หากภาพติดตามหาย ให้หยุดการนับเวลา
+        // หากภาพติดตามหาย ให้ซ่อนปุ่มเลือกกลุ่มดาว
         resetZoneDetection();
 
         displayCoordinates(
