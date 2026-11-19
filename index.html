@@ -306,47 +306,39 @@ const MAX_AREA_RATIO = 0.92;
 // CONSTELLATION ZONE SETTINGS
 // ========================================
 
-// ต้องอยู่ในเขตกลุ่มดาวครบ 3 วินาที
-const DISCOVERY_TIME = 3000;
-
-// ตัวอย่างพื้นที่ 12 กลุ่มดาว
-// พิกัด X/Y อยู่ในช่วง 0 ถึง 1
-// X = ซ้ายไปขวา
-// Y = บนลงล่าง
-//
-// ตอนนี้แบ่งหน้าจอเป็น 4 คอลัมน์ x 3 แถว
-// ต้องปรับพิกัดให้ตรงกับตำแหน่งกลุ่มดาวจริงภายหลัง
+// พิกัดอ้างอิงจากภาพท้องฟ้า 16:9 ที่ส่งมา
+// x/y = จุดกึ่งกลางของพื้นที่ตรวจจับ (normalized 0-1)
+// rx/ry = รัศมีแนวนอน/แนวตั้งของพื้นที่ตรวจจับ
+// ใช้เฉพาะกลุ่มดาว 12 ราศีที่มีเส้นสีขาวสว่าง
+// ไม่ใช้กลุ่มดาวหลอกที่มีเส้นสีม่วงจาง
+// หมายเหตุ: ตำแหน่งเป็นค่าเริ่มต้นจากภาพอ้างอิง อาจต้องจูนเล็กน้อย
+// หลังทดสอบกับภาพจริงใน TouchDesigner
 
 const CONSTELLATION_ZONES = [
-  { id: "aries",    name: "Aries",    x1: 0.00, y1: 0.00, x2: 0.25, y2: 0.333 },
-  { id: "taurus",   name: "Taurus",   x1: 0.25, y1: 0.00, x2: 0.50, y2: 0.333 },
-  { id: "gemini",   name: "Gemini",   x1: 0.50, y1: 0.00, x2: 0.75, y2: 0.333 },
-  { id: "cancer",   name: "Cancer",   x1: 0.75, y1: 0.00, x2: 1.00, y2: 0.333 },
-
-  { id: "leo",      name: "Leo",      x1: 0.00, y1: 0.333, x2: 0.25, y2: 0.666 },
-  { id: "virgo",    name: "Virgo",    x1: 0.25, y1: 0.333, x2: 0.50, y2: 0.666 },
-  { id: "libra",    name: "Libra",    x1: 0.50, y1: 0.333, x2: 0.75, y2: 0.666 },
-  { id: "scorpio",  name: "Scorpio",  x1: 0.75, y1: 0.333, x2: 1.00, y2: 0.666 },
-
-  { id: "sagittarius", name: "Sagittarius", x1: 0.00, y1: 0.666, x2: 0.25, y2: 1.00 },
-  { id: "capricorn",   name: "Capricorn",   x1: 0.25, y1: 0.666, x2: 0.50, y2: 1.00 },
-  { id: "aquarius",    name: "Aquarius",    x1: 0.50, y1: 0.666, x2: 0.75, y2: 1.00 },
-  { id: "pisces",      name: "Pisces",      x1: 0.75, y1: 0.666, x2: 1.00, y2: 1.00 }
+  { id: "gemini",      name: "Gemini",      x: 0.145, y: 0.130, rx: 0.115, ry: 0.105 },
+  { id: "virgo",       name: "Virgo",       x: 0.425, y: 0.115, rx: 0.065, ry: 0.105 },
+  { id: "pisces",      name: "Pisces",      x: 0.665, y: 0.155, rx: 0.105, ry: 0.095 },
+  { id: "leo",         name: "Leo",         x: 0.920, y: 0.265, rx: 0.065, ry: 0.085 },
+  { id: "aries",       name: "Aries",       x: 0.845, y: 0.535, rx: 0.070, ry: 0.075 },
+  { id: "sagittarius", name: "Sagittarius", x: 0.565, y: 0.425, rx: 0.075, ry: 0.090 },
+  { id: "scorpio",     name: "Scorpio",     x: 0.685, y: 0.700, rx: 0.060, ry: 0.090 },
+  { id: "libra",       name: "Libra",       x: 0.915, y: 0.875, rx: 0.060, ry: 0.080 },
+  { id: "aquarius",    name: "Aquarius",    x: 0.465, y: 0.890, rx: 0.065, ry: 0.075 },
+  { id: "taurus",      name: "Taurus",      x: 0.120, y: 0.865, rx: 0.080, ry: 0.080 },
+  { id: "cancer",      name: "Cancer",      x: 0.390, y: 0.610, rx: 0.065, ry: 0.095 },
+  { id: "capricorn",   name: "Capricorn",   x: 0.080, y: 0.540, rx: 0.065, ry: 0.085 }
 ];
 
 let currentZone = null;
-let zoneStartTime = null;
 let discoveredZone = null;
 let waitingForExit = false;
 let discoveryReady = false;
 
+// ใช้วงรีแทนกรอบสี่เหลี่ยม เพื่อให้พื้นที่ตรวจจับกระชับตามตำแหน่งกลุ่มดาว
 function isInsideZone(x, y, zone) {
-  return (
-    x >= zone.x1 &&
-    x <= zone.x2 &&
-    y >= zone.y1 &&
-    y <= zone.y2
-  );
+  const dx = (x - zone.x) / zone.rx;
+  const dy = (y - zone.y) / zone.ry;
+  return (dx * dx + dy * dy) <= 1;
 }
 
 function findZone(x, y) {
@@ -362,7 +354,6 @@ function hideDiscoveryButton() {
 
 function resetZoneDetection() {
   currentZone = null;
-  zoneStartTime = null;
   discoveredZone = null;
   waitingForExit = false;
   hideDiscoveryButton();
@@ -371,48 +362,29 @@ function resetZoneDetection() {
 function updateZoneDetection(x, y) {
   const zone = findZone(x, y);
 
-  // ผู้เล่นออกจากเขต
+  // ออกจากพื้นที่กลุ่มดาว: ซ่อนปุ่มและอนุญาตให้ค้นพบกลุ่มดาวใหม่
   if (!zone) {
     currentZone = null;
-    zoneStartTime = null;
     discoveredZone = null;
     waitingForExit = false;
-
     hideDiscoveryButton();
     return;
   }
 
-  // หลังจากกดปุ่มแล้ว ต้องออกจากเขตก่อน
-  // จึงจะเริ่มค้นพบกลุ่มดาวใหม่ได้
+  // หลังสั่งเล่นแล้ว ต้องออกจากพื้นที่ก่อนจึงจะเลือกกลุ่มดาวใหม่ได้
   if (waitingForExit) return;
 
-  // เปลี่ยนไปยังเขตกลุ่มดาวอื่น
+  // เมื่อ XY เข้าเขตกลุ่มดาว ให้แสดงปุ่มทันที ไม่ต้องรอเวลา
   if (!currentZone || currentZone.id !== zone.id) {
     currentZone = zone;
-    zoneStartTime = performance.now();
-    discoveredZone = null;
-    hideDiscoveryButton();
+    discoveredZone = zone;
+    discoveryReady = true;
 
-    status.textContent =
-      "กำลังค้นพบกลุ่มดาว " + zone.name + "...";
+    runAnimationButton.textContent = "Discover " + zone.name;
+    runAnimationButton.style.display = "block";
+    runAnimationButton.disabled = false;
 
-    return;
-  }
-
-  // ยังไม่ครบ 3 วินาที
-  if (!discoveryReady) {
-    const elapsed = performance.now() - zoneStartTime;
-
-    if (elapsed >= DISCOVERY_TIME) {
-      discoveredZone = zone;
-      discoveryReady = true;
-
-      runAnimationButton.style.display = "block";
-      runAnimationButton.disabled = false;
-
-      status.textContent =
-        "ค้นพบกลุ่มดาว " + zone.name + " แล้ว!";
-    }
+    status.textContent = "พบพื้นที่กลุ่มดาว " + zone.name + " แล้ว! กดปุ่มเพื่อเล่น Animation";
   }
 }
 
@@ -553,13 +525,19 @@ function sendXYToTouchDesigner(x, y) {
 runAnimationButton.addEventListener("click", () => {
   if (!discoveryReady || !discoveredZone) return;
 
-  if (!wsSend({ type: "runAnimation" })) {
+  const selectedConstellation = discoveredZone;
+
+  if (!wsSend({
+    type: "runAnimation",
+    constellationId: selectedConstellation.id,
+    constellationName: selectedConstellation.name
+  })) {
     status.textContent =
       "ยังไม่เชื่อมต่อเซิร์ฟเวอร์ จึงส่งคำสั่งไม่ได้";
     return;
   }
 
-  const name = discoveredZone.name;
+  const name = selectedConstellation.name;
 
   status.textContent =
     "ส่งคำสั่งเล่นอนิเมชัน " + name + " ไป TouchDesigner แล้ว";
@@ -1309,9 +1287,7 @@ function processVideo() {
         setTrackingStatus(false);
 
         // หากภาพติดตามหาย ให้หยุดการนับเวลา
-        currentZone = null;
-        zoneStartTime = null;
-        hideDiscoveryButton();
+        resetZoneDetection();
 
         displayCoordinates(
           lastGoodXY.x,
