@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -177,33 +177,41 @@ button:disabled {
 }
 #playerBar {
   grid-column: 1 / -1;
-  display: flex;
+  display: inline-flex;
+  justify-self: center;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 42px;
-  padding: 5px 10px;
-  border: 1px solid #7650a355;
-  border-radius: 12px;
-  background: rgba(8, 2, 22, .55);
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 4px 11px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,255,255,.17), rgba(255,255,255,.045));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 5px 18px rgba(0,0,0,.16);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
 }
 #playerInfo {
-  color: #eee6f7 !important;
-  font-size: 13px !important;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #f5efff !important;
+  font-size: 12px !important;
+  font-weight: 600;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.15;
+  white-space: nowrap;
 }
-#editPlayerName {
-  width: auto;
-  min-height: 30px;
-  padding: 5px 10px;
-  border: 1px solid #7650a3;
-  border-radius: 8px;
-  background: #24103d;
-  color: #e9dcff;
-  font-size: 11px;
-  box-shadow: none;
+#playerInfo::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #7dffbd;
+  box-shadow: 0 0 8px rgba(125,255,189,.85);
 }
 #nameDialog {
   position: fixed;
@@ -213,49 +221,95 @@ button:disabled {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(4, 1, 12, .78);
-  backdrop-filter: blur(5px);
+  background: rgba(4, 1, 12, .58);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 #nameDialog.is-open { display: flex; }
 .name-dialog-card {
   position: relative;
-  width: min(100%, 360px);
-  padding: 26px 22px 22px;
-  border: 1px solid #8054b5;
-  border-radius: 18px;
-  background: linear-gradient(145deg, #211039, #10071f);
-  box-shadow: 0 15px 50px #0009;
+  width: min(100%, 350px);
+  padding: 27px 22px 21px;
+  border: 1px solid rgba(255,255,255,.27);
+  border-radius: 25px;
+  background: linear-gradient(145deg, rgba(255,255,255,.19), rgba(125,87,170,.12) 48%, rgba(12,5,30,.58));
+  box-shadow: 0 22px 70px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.28);
+  backdrop-filter: blur(24px) saturate(165%);
+  -webkit-backdrop-filter: blur(24px) saturate(165%);
   text-align: center;
 }
-.name-dialog-card h2 { margin: 0 24px 9px; font-size: 20px; }
-.name-dialog-card p { margin: 0 0 17px; color: #c9bdd8; font-size: 13px; line-height: 1.6; }
+.name-dialog-card h2 {
+  margin: 0 26px 19px;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: .08em;
+}
 #playerNameInput {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid #7650a3;
-  border-radius: 10px;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 14px;
   outline: none;
-  background: #090414;
+  background: rgba(8,4,22,.38);
   color: #fff;
   font: inherit;
+  box-shadow: inset 0 1px 5px rgba(0,0,0,.18);
 }
-.name-dialog-actions { display: flex; gap: 10px; margin-top: 14px; }
-.name-dialog-actions button { min-height: 42px; border-radius: 10px; font-size: 13px; }
-#savePlayerName { background: #482078; }
-#skipPlayerName { background: #171020; }
+#playerNameInput::placeholder { color: rgba(239,230,255,.55); }
+#playerNameInput:focus {
+  border-color: rgba(205,170,255,.85);
+  box-shadow: 0 0 0 3px rgba(170,115,255,.16);
+}
+.name-dialog-actions { display: flex; gap: 10px; margin-top: 16px; }
+.name-dialog-actions button {
+  min-height: 43px;
+  border: 1px solid rgba(255,255,255,.27);
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: .02em;
+  background: linear-gradient(135deg, rgba(255,255,255,.24), rgba(255,255,255,.08));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 5px 14px rgba(0,0,0,.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+#savePlayerName { flex: 1.25; color: #fff; }
+#skipPlayerName { flex: .75; color: rgba(255,255,255,.82); }
 #closeNameDialog {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  min-height: 32px;
+  top: 9px;
+  right: 10px;
+  width: 30px;
+  min-height: 30px;
   padding: 0;
-  border: 0;
-  background: transparent;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 50%;
+  background: rgba(255,255,255,.09);
   box-shadow: none;
-  font-size: 23px;
+  color: #fff;
+  font-size: 20px;
 }
+/* Compact liquid-glass camera controls */
+#startCamera, #resetTracking {
+  min-height: 62px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,.17), rgba(255,255,255,.055));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 7px 20px rgba(0,0,0,.22);
+  backdrop-filter: blur(16px) saturate(145%);
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+  color: #f6efff;
+  font-size: 13px;
+  letter-spacing: .02em;
+}
+#startCamera:disabled, #resetTracking:disabled {
+  opacity: .48;
+  background: rgba(255,255,255,.07);
+  box-shadow: none;
+}
+button:active { transform: scale(.975); }
 #status {
   margin: 0;
   padding: 7px 12px 2px;
@@ -451,16 +505,15 @@ button:disabled {
   <h1>Light The Star</h1>
 </header>
 
-<!-- ตั้งชื่อผู้เล่น: กด X หรือข้ามได้ โดยระบบจะใช้ Player ตาม ID -->
+<!-- First-time player name prompt -->
 <section id="nameDialog" aria-hidden="true">
   <div class="name-dialog-card" role="dialog" aria-modal="true" aria-labelledby="nameDialogTitle">
-    <button id="closeNameDialog" type="button" aria-label="ข้าม">×</button>
-    <h2 id="nameDialogTitle">ตั้งชื่อผู้เล่น</h2>
-    <p>ตั้งชื่อที่ต้องการให้แสดงใต้ขอบวงกลมใน TouchDesigner<br>หากข้าม ระบบจะใช้ชื่อ Player ตามหมายเลข ID</p>
-    <input id="playerNameInput" type="text" maxlength="24" placeholder="ใส่ชื่อผู้เล่น" autocomplete="nickname">
+    <button id="closeNameDialog" type="button" aria-label="Close">×</button>
+    <h2 id="nameDialogTitle">PLAYER NAME</h2>
+    <input id="playerNameInput" type="text" maxlength="24" placeholder="Enter your name" autocomplete="nickname">
     <div class="name-dialog-actions">
-      <button id="savePlayerName" type="button">บันทึกชื่อ</button>
-      <button id="skipPlayerName" type="button">ข้าม</button>
+      <button id="savePlayerName" type="button">Continue</button>
+      <button id="skipPlayerName" type="button">Skip</button>
     </div>
   </div>
 </section>
@@ -496,8 +549,7 @@ button:disabled {
 
   <div class="controls">
     <div id="playerBar">
-      <div id="playerInfo">กำลังเชื่อมต่อ Server...</div>
-      <button id="editPlayerName" type="button">แก้ชื่อ</button>
+      <div id="playerInfo">Connecting</div>
     </div>
     <button id="startCamera" disabled>กำลังโหลด OpenCV.js...</button>
     <button id="resetTracking" type="button">Reset<br>Hold Tracking</button>
@@ -525,7 +577,6 @@ const coordY = document.getElementById("coordY");
 const detectedStatus = document.getElementById("detectedStatus");
 const trackingStatus = document.getElementById("trackingStatus");
 const playerInfo = document.getElementById("playerInfo");
-const editPlayerNameButton = document.getElementById("editPlayerName");
 const nameDialog = document.getElementById("nameDialog");
 const playerNameInput = document.getElementById("playerNameInput");
 const savePlayerNameButton = document.getElementById("savePlayerName");
@@ -714,14 +765,14 @@ function getSavedPlayerName() {
   catch (e) { return ""; }
 }
 
-function updatePlayerInfo(connectionText = "เชื่อมต่อแล้ว") {
+function updatePlayerInfo(connectionText = "Connected") {
   const fallback = playerId ? `Player ${playerId}` : "Player";
   const shownName = playerDisplayName || fallback;
-  playerInfo.textContent = `${shownName}  ·  ${connectionText}${playerId ? `  ·  ID ${playerId}` : ""}`;
+  playerInfo.textContent = `${shownName} · ${connectionText}`;
 }
 
 function openPlayerNameDialog() {
-  playerNameInput.value = playerDisplayName.startsWith("Player ") ? "" : playerDisplayName;
+  playerNameInput.value = "";
   nameDialog.classList.add("is-open");
   nameDialog.setAttribute("aria-hidden", "false");
   setTimeout(() => playerNameInput.focus(), 0);
@@ -745,7 +796,7 @@ function savePlayerName() {
   const cleaned = playerNameInput.value.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 24);
   if (!cleaned) {
     playerNameInput.focus();
-    playerNameInput.setCustomValidity("กรุณาใส่ชื่อ หรือกดข้าม");
+    playerNameInput.setCustomValidity("Please enter a name or choose Skip.");
     playerNameInput.reportValidity();
     return;
   }
@@ -769,7 +820,6 @@ function skipPlayerName() {
 savePlayerNameButton.addEventListener("click", savePlayerName);
 skipPlayerNameButton.addEventListener("click", skipPlayerName);
 closeNameDialogButton.addEventListener("click", skipPlayerName);
-editPlayerNameButton.addEventListener("click", openPlayerNameDialog);
 playerNameInput.addEventListener("keydown", event => {
   if (event.key === "Enter") savePlayerName();
   if (event.key === "Escape") skipPlayerName();
@@ -784,7 +834,7 @@ function connectWebSocket() {
   socket = new WebSocket(WS_ENDPOINT);
 
   socket.addEventListener("open", () => {
-    playerInfo.textContent = "เชื่อมต่อแล้ว · กำลังรับ Player ID...";
+    playerInfo.textContent = "Connecting";
   });
 
   socket.addEventListener("message", event => {
@@ -819,12 +869,12 @@ function connectWebSocket() {
 
   socket.addEventListener("close", () => {
     playerId = null;
-    updatePlayerInfo("การเชื่อมต่อหลุด · กำลังเชื่อมต่อใหม่...");
+    updatePlayerInfo("Reconnecting…");
     setTimeout(connectWebSocket, 1500);
   });
 
   socket.addEventListener("error", () => {
-    updatePlayerInfo("เชื่อมต่อ WebSocket ไม่สำเร็จ");
+    updatePlayerInfo("Connection failed");
   });
 }
 
@@ -1155,7 +1205,9 @@ function extractCandidates(srcMat, width, height) {
 
         const aspect = w / Math.max(h, 1);
 
-        if (aspect < 1.10 || aspect > 2.80) continue;
+        // Accept both landscape and portrait screen framing.
+        // The previous 1.10 lower limit rejected portrait orientation.
+        if (aspect < 0.35 || aspect > 2.80) continue;
 
         candidates.push({
           points: ordered,
