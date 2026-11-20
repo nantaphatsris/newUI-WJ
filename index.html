@@ -175,13 +175,86 @@ button:disabled {
   justify-content: center;
   text-align: center;
 }
-#playerInfo {
+#playerBar {
   grid-column: 1 / -1;
-  color: #d7cce4 !important;
-  font-size: 12px !important;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 5px 10px;
+  border: 1px solid #7650a355;
+  border-radius: 12px;
+  background: rgba(8, 2, 22, .55);
+}
+#playerInfo {
+  color: #eee6f7 !important;
+  font-size: 13px !important;
+  font-weight: 700;
   text-align: center;
-  padding: 2px 0 0;
+  line-height: 1.4;
+}
+#editPlayerName {
+  width: auto;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid #7650a3;
+  border-radius: 8px;
+  background: #24103d;
+  color: #e9dcff;
+  font-size: 11px;
+  box-shadow: none;
+}
+#nameDialog {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 1, 12, .78);
+  backdrop-filter: blur(5px);
+}
+#nameDialog.is-open { display: flex; }
+.name-dialog-card {
+  position: relative;
+  width: min(100%, 360px);
+  padding: 26px 22px 22px;
+  border: 1px solid #8054b5;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #211039, #10071f);
+  box-shadow: 0 15px 50px #0009;
+  text-align: center;
+}
+.name-dialog-card h2 { margin: 0 24px 9px; font-size: 20px; }
+.name-dialog-card p { margin: 0 0 17px; color: #c9bdd8; font-size: 13px; line-height: 1.6; }
+#playerNameInput {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #7650a3;
+  border-radius: 10px;
+  outline: none;
+  background: #090414;
+  color: #fff;
+  font: inherit;
+}
+.name-dialog-actions { display: flex; gap: 10px; margin-top: 14px; }
+.name-dialog-actions button { min-height: 42px; border-radius: 10px; font-size: 13px; }
+#savePlayerName { background: #482078; }
+#skipPlayerName { background: #171020; }
+#closeNameDialog {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 23px;
 }
 #status {
   margin: 0;
@@ -378,6 +451,20 @@ button:disabled {
   <h1>Light The Star</h1>
 </header>
 
+<!-- ตั้งชื่อผู้เล่น: กด X หรือข้ามได้ โดยระบบจะใช้ Player ตาม ID -->
+<section id="nameDialog" aria-hidden="true">
+  <div class="name-dialog-card" role="dialog" aria-modal="true" aria-labelledby="nameDialogTitle">
+    <button id="closeNameDialog" type="button" aria-label="ข้าม">×</button>
+    <h2 id="nameDialogTitle">ตั้งชื่อผู้เล่น</h2>
+    <p>ตั้งชื่อที่ต้องการให้แสดงใต้ขอบวงกลมใน TouchDesigner<br>หากข้าม ระบบจะใช้ชื่อ Player ตามหมายเลข ID</p>
+    <input id="playerNameInput" type="text" maxlength="24" placeholder="ใส่ชื่อผู้เล่น" autocomplete="nickname">
+    <div class="name-dialog-actions">
+      <button id="savePlayerName" type="button">บันทึกชื่อ</button>
+      <button id="skipPlayerName" type="button">ข้าม</button>
+    </div>
+  </div>
+</section>
+
 <section id="discoveryOverlay" aria-hidden="true" aria-label="ข้อมูลกลุ่มดาว">
   <div class="discovery-content">
     <div class="discovery-video-wrap">
@@ -408,9 +495,12 @@ button:disabled {
   </div>
 
   <div class="controls">
+    <div id="playerBar">
+      <div id="playerInfo">กำลังเชื่อมต่อ Server...</div>
+      <button id="editPlayerName" type="button">แก้ชื่อ</button>
+    </div>
     <button id="startCamera" disabled>กำลังโหลด OpenCV.js...</button>
     <button id="resetTracking" type="button">Reset<br>Hold Tracking</button>
-    <div id="playerInfo">Player: กำลังเชื่อมต่อ...</div>
   </div>
 
   <div id="status">สถานะ: รอโหลด OpenCV.js</div>
@@ -435,6 +525,12 @@ const coordY = document.getElementById("coordY");
 const detectedStatus = document.getElementById("detectedStatus");
 const trackingStatus = document.getElementById("trackingStatus");
 const playerInfo = document.getElementById("playerInfo");
+const editPlayerNameButton = document.getElementById("editPlayerName");
+const nameDialog = document.getElementById("nameDialog");
+const playerNameInput = document.getElementById("playerNameInput");
+const savePlayerNameButton = document.getElementById("savePlayerName");
+const skipPlayerNameButton = document.getElementById("skipPlayerName");
+const closeNameDialogButton = document.getElementById("closeNameDialog");
 const runAnimationButton = document.getElementById("runAnimation");
 const ctx = canvasOutput.getContext("2d");
 
@@ -598,15 +694,86 @@ function displayCoordinates(x, y) {
 }
 
 // ========================================
-// WEBSOCKET
+// WEBSOCKET + PLAYER NAME
 // ========================================
 
+// ลบช่องว่างท้าย URL แล้ว เพื่อป้องกัน WebSocket ต่อไม่ติด
 const WS_ENDPOINT =
-  "wss://directed-planner-expenses-entry.trycloudflare.com ";
+  "wss://directed-planner-expenses-entry.trycloudflare.com";
+
+const PLAYER_NAME_KEY = "lightTheStarPlayerName";
+const NAME_PROMPT_SEEN_KEY = "lightTheStarNamePromptSeen";
 
 let socket = null;
 let playerId = null;
+let playerDisplayName = "Player";
 let lastXYSendTime = 0;
+
+function getSavedPlayerName() {
+  try { return (localStorage.getItem(PLAYER_NAME_KEY) || "").trim(); }
+  catch (e) { return ""; }
+}
+
+function updatePlayerInfo(connectionText = "เชื่อมต่อแล้ว") {
+  const fallback = playerId ? `Player ${playerId}` : "Player";
+  const shownName = playerDisplayName || fallback;
+  playerInfo.textContent = `${shownName}  ·  ${connectionText}${playerId ? `  ·  ID ${playerId}` : ""}`;
+}
+
+function openPlayerNameDialog() {
+  playerNameInput.value = playerDisplayName.startsWith("Player ") ? "" : playerDisplayName;
+  nameDialog.classList.add("is-open");
+  nameDialog.setAttribute("aria-hidden", "false");
+  setTimeout(() => playerNameInput.focus(), 0);
+}
+
+function closePlayerNameDialog() {
+  nameDialog.classList.remove("is-open");
+  nameDialog.setAttribute("aria-hidden", "true");
+}
+
+function sendPlayerName(name) {
+  if (!playerId) return false;
+  const cleaned = String(name || "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 24);
+  playerDisplayName = cleaned || `Player ${playerId}`;
+  wsSend({ type: "name", name: playerDisplayName });
+  updatePlayerInfo();
+  return true;
+}
+
+function savePlayerName() {
+  const cleaned = playerNameInput.value.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 24);
+  if (!cleaned) {
+    playerNameInput.focus();
+    playerNameInput.setCustomValidity("กรุณาใส่ชื่อ หรือกดข้าม");
+    playerNameInput.reportValidity();
+    return;
+  }
+  playerNameInput.setCustomValidity("");
+  try {
+    localStorage.setItem(PLAYER_NAME_KEY, cleaned);
+    localStorage.setItem(NAME_PROMPT_SEEN_KEY, "1");
+  } catch (e) { /* ใช้งานต่อได้แม้ browser ปิด localStorage */ }
+  sendPlayerName(cleaned);
+  closePlayerNameDialog();
+}
+
+function skipPlayerName() {
+  const defaultName = playerId ? `Player ${playerId}` : "Player";
+  try { localStorage.setItem(NAME_PROMPT_SEEN_KEY, "1"); } catch (e) {}
+  try { localStorage.removeItem(PLAYER_NAME_KEY); } catch (e) {}
+  sendPlayerName(defaultName);
+  closePlayerNameDialog();
+}
+
+savePlayerNameButton.addEventListener("click", savePlayerName);
+skipPlayerNameButton.addEventListener("click", skipPlayerName);
+closeNameDialogButton.addEventListener("click", skipPlayerName);
+editPlayerNameButton.addEventListener("click", openPlayerNameDialog);
+playerNameInput.addEventListener("keydown", event => {
+  if (event.key === "Enter") savePlayerName();
+  if (event.key === "Escape") skipPlayerName();
+});
 
 function connectWebSocket() {
   if (socket &&
@@ -617,8 +784,7 @@ function connectWebSocket() {
   socket = new WebSocket(WS_ENDPOINT);
 
   socket.addEventListener("open", () => {
-    playerInfo.textContent =
-      "เชื่อมต่อแล้ว กำลังรับ Player ID...";
+    playerInfo.textContent = "เชื่อมต่อแล้ว · กำลังรับ Player ID...";
   });
 
   socket.addEventListener("message", event => {
@@ -627,14 +793,23 @@ function connectWebSocket() {
 
       if (data.type === "welcome") {
         playerId = data.playerId;
-        playerInfo.textContent =
-          `Player ${playerId} / เชื่อมต่อแล้ว`;
+        const savedName = getSavedPlayerName();
+        playerDisplayName = savedName || `Player ${playerId}`;
+        updatePlayerInfo();
+
+        if (savedName) {
+          sendPlayerName(savedName);
+        } else {
+          let promptSeen = false;
+          try { promptSeen = localStorage.getItem(NAME_PROMPT_SEEN_KEY) === "1"; } catch (e) {}
+          if (!promptSeen) openPlayerNameDialog();
+          else sendPlayerName(`Player ${playerId}`);
+        }
 
         if (stream) sendPlayerActive(true);
 
       } else if (data.type === "error") {
-        playerInfo.textContent =
-          data.message || "Server error";
+        playerInfo.textContent = data.message || "Server error";
       }
 
     } catch (e) {
@@ -644,15 +819,12 @@ function connectWebSocket() {
 
   socket.addEventListener("close", () => {
     playerId = null;
-    playerInfo.textContent =
-      "เชื่อมต่อหลุด กำลัง reconnect...";
-
+    updatePlayerInfo("การเชื่อมต่อหลุด · กำลังเชื่อมต่อใหม่...");
     setTimeout(connectWebSocket, 1500);
   });
 
   socket.addEventListener("error", () => {
-    playerInfo.textContent =
-      "WebSocket เชื่อมต่อไม่สำเร็จ";
+    updatePlayerInfo("เชื่อมต่อ WebSocket ไม่สำเร็จ");
   });
 }
 
@@ -661,7 +833,6 @@ function wsSend(data) {
     socket.send(JSON.stringify(data));
     return true;
   }
-
   return false;
 }
 
@@ -674,9 +845,7 @@ function sendPlayerActive(active) {
 
 function sendXYToTouchDesigner(x, y) {
   const now = performance.now();
-
   if (now - lastXYSendTime < 50) return;
-
   lastXYSendTime = now;
 
   wsSend({

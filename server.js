@@ -1,9 +1,23 @@
-
 const osc = require("osc");
 const WebSocket = require("ws");
 
 const PORT = 8080;
 const MAX_PLAYERS = 10;
+
+// สีเส้นขอบประจำ Player ID (RGB 0-1) คงที่และไม่ซ้ำกัน
+// สีนี้ใช้เฉพาะเส้นขอบ ไม่ได้เปลี่ยนสีวงกลมด้านใน
+const PLAYER_OUTLINE_COLORS = {
+    1:  { r: 1.00, g: 0.20, b: 0.20 }, // red
+    2:  { r: 0.10, g: 0.75, b: 1.00 }, // cyan
+    3:  { r: 0.20, g: 1.00, b: 0.35 }, // green
+    4:  { r: 1.00, g: 0.75, b: 0.10 }, // amber
+    5:  { r: 0.75, g: 0.25, b: 1.00 }, // purple
+    6:  { r: 1.00, g: 0.30, b: 0.70 }, // pink
+    7:  { r: 0.20, g: 1.00, b: 0.90 }, // turquoise
+    8:  { r: 1.00, g: 0.50, b: 0.12 }, // orange
+    9:  { r: 0.65, g: 1.00, b: 0.15 }, // lime
+    10: { r: 0.45, g: 0.55, b: 1.00 }  // periwinkle
+};
 
 // ========================================
 // OSC -> TouchDesigner
@@ -32,11 +46,28 @@ udpPort.open();
 
 function sendOSC(address, type, value) {
     if (!oscReady) return;
-
     udpPort.send({
         address,
         args: [{ type, value }]
     });
+}
+
+function sendPlayerOutlineColor(playerId) {
+    const color = PLAYER_OUTLINE_COLORS[playerId];
+    if (!color) return;
+
+    // ส่ง RGB แยก channel ให้ TD ใช้กำหนดสี Outline
+    sendOSC(`/player/${playerId}/outline/r`, "f", color.r);
+    sendOSC(`/player/${playerId}/outline/g`, "f", color.g);
+    sendOSC(`/player/${playerId}/outline/b`, "f", color.b);
+}
+
+function cleanPlayerName(value, fallback) {
+    const name = String(value ?? "")
+        .replace(/[\u0000-\u001f\u007f]/g, "")
+        .trim()
+        .slice(0, 24);
+    return name || fallback;
 }
 
 // ========================================
@@ -52,20 +83,18 @@ function allocatePlayer() {
             return i;
         }
     }
-
     return null;
 }
 
 function releasePlayer(ws) {
     const id = ws.playerId;
-
     if (!id) return;
 
     sendOSC(`/player/${id}/active`, "i", 0);
+    sendOSC(`/player/${id}/name`, "s", "");
 
     occupiedSlots.delete(id);
     ws.playerId = null;
-
     console.log(`Player ${id} disconnected`);
 }
 
@@ -73,9 +102,7 @@ function releasePlayer(ws) {
 // WEBSOCKET SERVER
 // ========================================
 
-const wss = new WebSocket.Server({
-    port: PORT
-});
+const wss = new WebSocket.Server({ port: PORT });
 
 wss.on("listening", () => {
     console.log("==============================");
@@ -93,22 +120,26 @@ wss.on("connection", (ws) => {
             type: "error",
             message: "ห้องเต็มแล้ว"
         }));
-
         ws.close(1013, "Server full");
         return;
     }
 
     ws.playerId = playerId;
+    ws.playerName = `Player ${playerId}`;
     ws.isAlive = true;
 
-    console.log(`Player ${playerId} connected`);
+    console.log(`${ws.playerName} connected`);
 
-    // เริ่มต้น inactive จนกว่าจะเปิดกล้อง
+    // เริ่มต้น inactive และส่งข้อมูลสีขอบประจำ ID ให้ TD
     sendOSC(`/player/${playerId}/active`, "i", 0);
+    sendPlayerOutlineColor(playerId);
+    sendOSC(`/player/${playerId}/name`, "s", ws.playerName);
 
     ws.send(JSON.stringify({
         type: "welcome",
-        playerId
+        playerId,
+        displayName: ws.playerName,
+        outlineColor: PLAYER_OUTLINE_COLORS[playerId]
     }));
 
     ws.on("pong", () => {
@@ -123,20 +154,19 @@ wss.on("connection", (ws) => {
         try {
             const data = JSON.parse(message);
 
+            // PLAYER DISPLAY NAME
+            if (data.type === "name") {
+                ws.playerName = cleanPlayerName(data.name, `Player ${playerId}`);
+                sendOSC(`/player/${playerId}/name`, "s", ws.playerName);
+                console.log(`Player ${playerId} name: ${ws.playerName}`);
+                return;
+            }
+
             // CAMERA ACTIVE / INACTIVE
             if (data.type === "active") {
                 const active = data.active ? 1 : 0;
-
-                sendOSC(
-                    `/player/${playerId}/active`,
-                    "i",
-                    active
-                );
-
-                console.log(
-                    `Player ${playerId} camera active: ${active}`
-                );
-
+                sendOSC(`/player/${playerId}/active`, "i", active);
+                console.log(`Player ${playerId} camera active: ${active}`);
                 return;
             }
 
@@ -144,69 +174,34 @@ wss.on("connection", (ws) => {
             if (data.type === "xy") {
                 const x = Number(data.x);
                 const y = Number(data.y);
-
-                if (
-                    !Number.isFinite(x) ||
-                    !Number.isFinite(y)
-                ) {
-                    return;
-                }
+                if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
                 const safeX = Math.max(0, Math.min(1, x));
                 const safeY = Math.max(0, Math.min(1, y));
-
-                sendOSC(
-                    `/player/${playerId}/x`,
-                    "f",
-                    safeX
-                );
-
-                sendOSC(
-                    `/player/${playerId}/y`,
-                    "f",
-                    safeY
-                );
-
+                sendOSC(`/player/${playerId}/x`, "f", safeX);
+                sendOSC(`/player/${playerId}/y`, "f", safeY);
                 return;
             }
 
-            // RUN CONSTELLATION ANIMATION
+            // RUN CONSTELLATION ANIMATION (ระบบเดิม)
             if (data.type === "runAnimation") {
-                console.log(
-                    `Player ${playerId} triggered animation`
-                );
-
+                console.log(`Player ${playerId} triggered animation`);
                 sendOSC("/animation/run", "i", 1);
-
-                // Reset pulse after 100ms
                 setTimeout(() => {
                     sendOSC("/animation/run", "i", 0);
                 }, 100);
-
                 return;
             }
 
         } catch (error) {
-            console.error(
-                "Invalid message:",
-                error.message
-            );
+            console.error("Invalid message:", error.message);
         }
     });
 
-    // ========================================
-    // DISCONNECT
-    // ========================================
-
-    ws.on("close", () => {
-        releasePlayer(ws);
-    });
+    ws.on("close", () => releasePlayer(ws));
 
     ws.on("error", (err) => {
-        console.error(
-            `Player ${playerId} WebSocket error:`,
-            err.message
-        );
+        console.error(`Player ${playerId} WebSocket error:`, err.message);
     });
 });
 
@@ -220,12 +215,9 @@ const heartbeat = setInterval(() => {
             ws.terminate();
             return;
         }
-
         ws.isAlive = false;
         ws.ping();
     });
 }, 15000);
 
-wss.on("close", () => {
-    clearInterval(heartbeat);
-});
+wss.on("close", () => clearInterval(heartbeat));
