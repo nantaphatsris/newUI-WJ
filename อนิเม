@@ -602,7 +602,7 @@ function displayCoordinates(x, y) {
 // ========================================
 
 const WS_ENDPOINT =
-  "wss://ebook-posters-iowa-officials.trycloudflare.com";
+  "wss://directed-planner-expenses-entry.trycloudflare.com ";
 
 let socket = null;
 let playerId = null;
