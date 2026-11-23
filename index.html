@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,7 +132,6 @@ box-shadow: 0 0 10px #2b075555;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  /* Random-looking star field: each star has its own position, no repeating grid */
   background:
     radial-gradient(1.2px 1.2px at 6% 24%, rgba(255,255,255,.76) 99%, transparent 100%),
     radial-gradient(1px 1px at 19% 78%, rgba(221,202,255,.62) 99%, transparent 100%),
@@ -156,7 +154,6 @@ button {
   border: 1px solid #38204f;
   border-radius: 20px;
 
-  /* ปุ่มสีม่วงเข้ม */
   background: linear-gradient(
   115deg,
   #090014,
@@ -198,7 +195,6 @@ button:disabled {
   padding: 3px 10px;
   border: 1px solid rgba(174,126,230,.13);
   border-radius: 999px;
-  /* Subtle deep-violet glass, intentionally quieter than the action buttons */
   background: linear-gradient(135deg, rgba(13,6,27,.48), rgba(5,4,13,.36));
   box-shadow: inset 0 1px 0 rgba(210,178,255,.055), 0 3px 10px rgba(0,0,0,.16);
   backdrop-filter: blur(15px) saturate(125%);
@@ -349,23 +345,34 @@ button:active { transform: scale(.975); }
 
 
 /* ========================================
-   CONSTELLATION DISCOVERY OVERLAY
-   Layout: video on top, information panel fills the rest
+   CONSTELLATION DISCOVERY OVERLAY (LIQUID GLASS UI)
    ======================================== */
 #discoveryOverlay {
   position: fixed;
-  inset: 64px 0 0;
+  inset: 0;
   z-index: 1000;
   display: none;
   flex-direction: column;
   overflow: hidden;
-  background: #080516;
-  height: calc(100dvh - 64px);
+  height: 100dvh;
+  /* พื้นหลังท้องฟ้าและแสงเนบิวลา */
+  background:
+    radial-gradient(2px 2px at 15% 12%, #ffffff 99%, transparent),
+    radial-gradient(1.5px 1.5px at 82% 8%, #ffffff 99%, transparent),
+    radial-gradient(2px 2px at 33% 44%, #ffffff 99%, transparent),
+    radial-gradient(1.5px 1.5px at 68% 48%, #ffffff 99%, transparent),
+    radial-gradient(1px 1px at 22% 72%, #ffffff99 99%, transparent),
+    radial-gradient(1.5px 1.5px at 78% 82%, #ffffff99 99%, transparent),
+    radial-gradient(1px 1px at 48% 92%, #ffffff88 99%, transparent),
+    radial-gradient(ellipse at 25% 45%, rgba(125, 175, 225, 0.42) 0%, transparent 55%),
+    radial-gradient(ellipse at 78% 50%, rgba(70, 115, 175, 0.35) 0%, transparent 50%),
+    linear-gradient(180deg, #0d162c 0%, #1d2d4e 42%, #190e36 62%, #140b2e 100%);
 }
 #discoveryOverlay.is-open { display: flex; }
 
 .discovery-content {
   width: 100%;
+  max-width: 540px;
   height: 100%;
   min-height: 0;
   margin: 0 auto;
@@ -374,15 +381,17 @@ button:active { transform: scale(.975); }
   overflow: hidden;
 }
 
-/* วิดีโออยู่ด้านบน เหมือนภาพ Reference */
+/* 1. วิดีโออยู่ด้านบน */
 .discovery-video-wrap {
   position: relative;
   flex: 0 0 auto;
   width: 100%;
   aspect-ratio: 16 / 9;
-  max-height: 38%;
+  max-height: 36%;
+  margin-top: 26px;
   overflow: hidden;
   background: #000;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
 }
 #discoveryVideo {
   display: block;
@@ -411,97 +420,210 @@ button:active { transform: scale(.975); }
 #closeDiscovery {
   display: none;
   position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 5;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
   width: 36px;
   min-height: 36px;
   padding: 0;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
-  background: rgba(20, 17, 35, .28);
-  color: rgba(25, 25, 35, .72);
-  font-size: 24px;
+  background: rgba(18, 12, 34, 0.65);
+  color: #ffffff;
+  font-size: 22px;
   font-weight: 400;
   line-height: 1;
-  box-shadow: none;
-  backdrop-filter: blur(3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 #closeDiscovery.is-visible { display: flex; align-items: center; justify-content: center; }
 
+/* พื้นที่ส่วนล่าง (ชื่อราศี + กล่อง Liquid Glass) */
 .discovery-info {
   flex: 1 1 auto;
   min-height: 0;
-  margin: 0;
-  padding: 16px;
+  width: 100%;
+  padding: 16px 20px 24px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  overflow-y: auto;
-  border: 0;
-  border-radius: 0;
-  background:
-    radial-gradient(1px 1px at 18% 25%, #ffffff16 99%, transparent),
-    radial-gradient(1px 1px at 82% 70%, #d8baff16 99%, transparent),
-    linear-gradient(135deg, #352064, #402574 55%, #2b1552);
-  background-size: 120px 120px, 160px 160px, auto;
+  overflow: hidden;
+  background: transparent;
   color: #fff;
 }
-.discovery-info-inner {
-  width: min(100%, 560px);
-  min-height: min(100%, 280px);
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+
+/* 2. ชื่อราศีตรงกลาง (อยู่นอกกล่อง Liquid Glass) */
+.zodiac-header-box {
+  flex: 0 0 auto;
   text-align: center;
-  border: 2px solid rgba(190, 170, 225, .28);
-  border-radius: 38px;
-  background: rgba(65, 43, 112, .24);
-  box-shadow: inset 0 0 20px rgba(255,255,255,.025);
+  margin: 4px 0 18px;
 }
-#discoverySymbol {
-  margin: 0 0 8px;
-  color: #d9c8f4;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: .08em;
-}
-#discoveryTitle {
-  margin: 0 0 14px;
-  color: #fff;
-  font-size: clamp(22px, 5vw, 30px);
-  line-height: 1.35;
-}
-#discoveryDescription {
+#discoveryTitleEn {
   margin: 0;
-  color: #eee8f7;
-  font-size: 14px;
-  line-height: 1.8;
+  color: #ffffff;
+  font-size: clamp(32px, 8vw, 42px);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.15;
+  text-shadow: 0 2px 14px rgba(255, 255, 255, 0.35);
+}
+.zodiac-thai-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.zodiac-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #a855f7, #6b21a8);
+  color: #ffffff;
+  font-size: 18px;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.55);
+}
+#discoveryTitleTh {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(22px, 5.5vw, 28px);
+  font-weight: 700;
+  line-height: 1.25;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* 3. กล่อง Liquid Glass + ดาวตกแต่งมุม */
+.liquid-glass-wrapper {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+}
+
+.star-corner {
+  position: absolute;
+  top: -22px;
+  width: 78px;
+  height: 78px;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 2px 6px rgba(255, 209, 102, 0.45));
+}
+.star-corner.left { left: -10px; }
+.star-corner.right { right: -10px; transform: scaleX(-1); }
+
+/* ตัวกล่องกระจก Liquid Glass ที่เลื่อนอ่านด้านในได้ */
+.discovery-info-inner {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  padding: 26px 22px 24px;
+  border-radius: 30px;
+
+  /* เอฟเฟกต์ Liquid Glass โปร่งแสง เบลอฉากหลัง ขอบสะท้อนแสง */
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 48%,
+    rgba(140, 100, 235, 0.08) 100%
+  );
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0 -2px 10px rgba(255, 255, 255, 0.08);
+
+  /* เลื่อนอ่านภายในกรอบ */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+.discovery-info-inner::-webkit-scrollbar {
+  width: 5px;
+}
+.discovery-info-inner::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 18px 0;
+}
+.discovery-info-inner::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+}
+.discovery-info-inner::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+#discoveryMeta {
+  margin: 0 0 16px;
+  text-align: center;
+  color: #ffffff;
+  font-size: clamp(16px, 4.2vw, 19px);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+#discoveryDescription {
+  margin: 0 0 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: clamp(14px, 3.8vw, 16px);
+  line-height: 1.75;
   white-space: pre-line;
 }
+
+#discoveryTraits {
+  list-style: none;
+  margin: 0;
+  padding: 0 6px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: clamp(13.5px, 3.6vw, 15.5px);
+  line-height: 1.7;
+}
+#discoveryTraits li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 10px;
+}
+#discoveryTraits li::before {
+  content: "•";
+  position: absolute;
+  left: 2px;
+  top: -1px;
+  color: #ffffff;
+  font-size: 18px;
+}
+
 @media (max-width: 480px) {
-  #discoveryOverlay {
-    inset: 64px 0 0;
-    height: calc(100dvh - 64px);
+  .discovery-video-wrap {
+    margin-top: 20px;
   }
-  .discovery-info { padding: 14px; }
+  .discovery-info {
+    padding: 12px 16px 20px;
+  }
+  .zodiac-header-box {
+    margin: 2px 0 14px;
+  }
   .discovery-info-inner {
-    min-height: 0;
-    padding: 22px 16px;
-    border-radius: 34px;
+    padding: 22px 18px 20px;
+    border-radius: 26px;
   }
-  #discoveryDescription { font-size: 13px; }
 }
 
 
 
 /* ========================================
    LIGHT THE STAR — ORIGINAL PURPLE PALETTE
-   Only controls + name popup are retuned.
-   Keep the rest of the page in its original theme.
    ======================================== */
 body {
   background:
@@ -515,7 +637,6 @@ body {
   background-size: 130px 130px, 170px 170px, 210px 210px, 150px 150px, auto, auto, auto;
 }
 
-/* Restore the deep-purple control strip from the reference image. */
 .controls {
   background:
     radial-gradient(1px 1px at 17% 28%, rgba(255,255,255,.16) 99%, transparent 100%),
@@ -524,7 +645,6 @@ body {
   background-size: 173px 113px, 211px 137px, auto;
 }
 
-/* Buttons: same purple-glass family as the reference, about 30% darker. */
 #startCamera, #resetTracking {
   background:
     linear-gradient(112deg,
@@ -548,7 +668,6 @@ body {
   color: rgba(239, 229, 250, .72);
 }
 
-/* Player name stays quiet: purple-tinted glass, lower contrast than buttons. */
 #playerBar {
   background: linear-gradient(135deg,
     rgba(30, 12, 48, .46),
@@ -561,7 +680,6 @@ body {
   color: rgba(246, 238, 255, .92) !important;
 }
 
-/* Name popup: return to the site's purple palette, not gray glass. */
 #nameDialog {
   background: rgba(10, 0, 24, .64);
 }
@@ -591,7 +709,6 @@ body {
   border-color: rgba(201, 169, 229, .30);
 }
 
-/* Keep the status strip in the same deep-purple background family. */
 #status { background: #100020; }
 .diagnostics {
   background: #100020;
@@ -623,18 +740,61 @@ body {
   </div>
 </section>
 
+<!-- หน้าแสดงอนิเมชันและข้อมูลกลุ่มดาว (Liquid Glass Layout) -->
 <section id="discoveryOverlay" aria-hidden="true" aria-label="ข้อมูลกลุ่มดาว">
   <div class="discovery-content">
+    <!-- 1. พื้นที่เล่นวิดีโออนิเมชันด้านบน -->
     <div class="discovery-video-wrap">
       <video id="discoveryVideo" autoplay muted loop playsinline preload="auto"></video>
       <button id="closeDiscovery" type="button" aria-label="ปิดหน้าต่าง">×</button>
       <div id="videoFallback">ยังไม่มีไฟล์ Animation ของกลุ่มดาวนี้<br>นำไฟล์วิดีโอไปใส่ในโฟลเดอร์ animations แล้วตั้งชื่อให้ตรงกับราศีได้เลย</div>
     </div>
+
+    <!-- พื้นที่ด้านล่าง -->
     <article class="discovery-info">
-      <div class="discovery-info-inner">
-        <p id="discoverySymbol">CONSTELLATION</p>
-        <h2 id="discoveryTitle">Constellation</h2>
-        <p id="discoveryDescription"></p>
+      <!-- 2. ชื่อราศีภาษาอังกฤษ + ไทย อยู่นอกกล่อง Liquid Glass -->
+      <div class="zodiac-header-box">
+        <h2 id="discoveryTitleEn">Constellation</h2>
+        <div class="zodiac-thai-row">
+          <span class="zodiac-icon-badge" id="discoveryIcon">★</span>
+          <h3 id="discoveryTitleTh">กลุ่มดาว</h3>
+        </div>
+      </div>
+
+      <!-- 3. กล่อง Liquid Glass + ดาวตกแต่งมุม -->
+      <div class="liquid-glass-wrapper">
+        <!-- ดาวมุมซ้าย -->
+        <svg class="star-corner left" viewBox="0 0 110 110" fill="none" aria-hidden="true">
+          <path d="M26 6 L32 20 L48 21 L36 31 L40 46 L26 38 L12 46 L16 31 L4 21 L20 20 Z" fill="#FFD166"/>
+          <path d="M68 25 L72 34 L82 35 L74 42 L77 52 L68 46 L59 52 L62 42 L54 35 L64 34 Z" fill="#FFD166"/>
+          <path d="M36 60 L39 67 L47 68 L41 73 L43 81 L36 76 L29 81 L31 73 L25 68 L33 67 Z" fill="#FFD166"/>
+          <path d="M6 12 L8 15 L11 16 L8 18 L6 21 L5 18 L2 16 L5 15 Z" fill="#FFF3B0"/>
+          <path d="M90 48 L92 51 L95 52 L92 54 L90 57 L89 54 L86 52 L89 51 Z" fill="#FFF3B0"/>
+          <circle cx="56" cy="16" r="3" fill="#FFF3B0"/>
+          <circle cx="19" cy="54" r="3.5" fill="#FFF3B0"/>
+          <circle cx="64" cy="70" r="3" fill="#FFF3B0"/>
+          <circle cx="14" cy="74" r="2" fill="#FFF3B0"/>
+        </svg>
+
+        <!-- ดาวมุมขวา -->
+        <svg class="star-corner right" viewBox="0 0 110 110" fill="none" aria-hidden="true">
+          <path d="M26 6 L32 20 L48 21 L36 31 L40 46 L26 38 L12 46 L16 31 L4 21 L20 20 Z" fill="#FFD166"/>
+          <path d="M68 25 L72 34 L82 35 L74 42 L77 52 L68 46 L59 52 L62 42 L54 35 L64 34 Z" fill="#FFD166"/>
+          <path d="M36 60 L39 67 L47 68 L41 73 L43 81 L36 76 L29 81 L31 73 L25 68 L33 67 Z" fill="#FFD166"/>
+          <path d="M6 12 L8 15 L11 16 L8 18 L6 21 L5 18 L2 16 L5 15 Z" fill="#FFF3B0"/>
+          <path d="M90 48 L92 51 L95 52 L92 54 L90 57 L89 54 L86 52 L89 51 Z" fill="#FFF3B0"/>
+          <circle cx="56" cy="16" r="3" fill="#FFF3B0"/>
+          <circle cx="19" cy="54" r="3.5" fill="#FFF3B0"/>
+          <circle cx="64" cy="70" r="3" fill="#FFF3B0"/>
+          <circle cx="14" cy="74" r="2" fill="#FFF3B0"/>
+        </svg>
+
+        <!-- กรอบเลื่อนอ่านข้อมูลภายใน -->
+        <div class="discovery-info-inner" id="discoveryScrollBox">
+          <p id="discoveryMeta"></p>
+          <p id="discoveryDescription"></p>
+          <ul id="discoveryTraits"></ul>
+        </div>
       </div>
     </article>
   </div>
@@ -726,14 +886,6 @@ const MAX_AREA_RATIO = 0.92;
 // CONSTELLATION ZONE SETTINGS
 // ========================================
 
-// พิกัดอ้างอิงจากภาพท้องฟ้า 16:9 ที่ส่งมา
-// x/y = จุดกึ่งกลางของพื้นที่ตรวจจับ (normalized 0-1)
-// rx/ry = รัศมีแนวนอน/แนวตั้งของพื้นที่ตรวจจับ
-// ใช้เฉพาะกลุ่มดาว 12 ราศีที่มีเส้นสีขาวสว่าง
-// ไม่ใช้กลุ่มดาวหลอกที่มีเส้นสีม่วงจาง
-// หมายเหตุ: ตำแหน่งเป็นค่าเริ่มต้นจากภาพอ้างอิง อาจต้องจูนเล็กน้อย
-// หลังทดสอบกับภาพจริงใน TouchDesigner
-
 const CONSTELLATION_ZONES = [
   { id: "gemini",      name: "Gemini",      x: 0.145, y: 0.130, rx: 0.115, ry: 0.105 },
   { id: "virgo",       name: "Virgo",       x: 0.425, y: 0.115, rx: 0.065, ry: 0.105 },
@@ -754,7 +906,6 @@ let discoveredZone = null;
 let waitingForExit = false;
 let discoveryReady = false;
 
-// ใช้วงรีแทนกรอบสี่เหลี่ยม เพื่อให้พื้นที่ตรวจจับกระชับตามตำแหน่งกลุ่มดาว
 function isInsideZone(x, y, zone) {
   const dx = (x - zone.x) / zone.rx;
   const dy = (y - zone.y) / zone.ry;
@@ -782,7 +933,6 @@ function resetZoneDetection() {
 function updateZoneDetection(x, y) {
   const zone = findZone(x, y);
 
-  // ออกจากพื้นที่กลุ่มดาว: ซ่อนปุ่มและอนุญาตให้ค้นพบกลุ่มดาวใหม่
   if (!zone) {
     currentZone = null;
     discoveredZone = null;
@@ -791,10 +941,8 @@ function updateZoneDetection(x, y) {
     return;
   }
 
-  // หลังสั่งเล่นแล้ว ต้องออกจากพื้นที่ก่อนจึงจะเลือกกลุ่มดาวใหม่ได้
   if (waitingForExit) return;
 
-  // เมื่อ XY เข้าเขตกลุ่มดาว ให้แสดงปุ่มทันที ไม่ต้องรอเวลา
   if (!currentZone || currentZone.id !== zone.id) {
     currentZone = zone;
     discoveredZone = zone;
@@ -853,10 +1001,8 @@ function displayCoordinates(x, y) {
 // WEBSOCKET + PLAYER NAME
 // ========================================
 
-// ลบช่องว่างท้าย URL แล้ว เพื่อป้องกัน WebSocket ต่อไม่ติด
 const WS_ENDPOINT =
   "wss://directed-planner-expenses-entry.trycloudflare.com";
-
 
 let socket = null;
 let playerId = null;
@@ -937,7 +1083,6 @@ function connectWebSocket() {
         playerId = data.playerId;
         playerDisplayName = `Player ${playerId}`;
         updatePlayerInfo();
-        // Ask for a fresh display name on every page load / refresh.
         openPlayerNameDialog();
 
         if (stream) sendPlayerActive(true);
@@ -990,19 +1135,19 @@ function sendXYToTouchDesigner(x, y) {
 }
 
 // ========================================
-// ANIMATION BUTTON
-// ========================================
-
-// ========================================
 // WEBSITE CONSTELLATION ANIMATION
 // ========================================
 
 const discoveryOverlay = document.getElementById("discoveryOverlay");
 const discoveryVideo = document.getElementById("discoveryVideo");
 const videoFallback = document.getElementById("videoFallback");
-const discoverySymbol = document.getElementById("discoverySymbol");
-const discoveryTitle = document.getElementById("discoveryTitle");
+const discoveryTitleEn = document.getElementById("discoveryTitleEn");
+const discoveryIcon = document.getElementById("discoveryIcon");
+const discoveryTitleTh = document.getElementById("discoveryTitleTh");
+const discoveryMeta = document.getElementById("discoveryMeta");
 const discoveryDescription = document.getElementById("discoveryDescription");
+const discoveryTraits = document.getElementById("discoveryTraits");
+const discoveryScrollBox = document.getElementById("discoveryScrollBox");
 const closeDiscoveryButton = document.getElementById("closeDiscovery");
 
 let isDiscoveryOpen = false;
@@ -1013,7 +1158,7 @@ function openConstellationInfo(zone) {
   const info = CONSTELLATION_INFO[zone.id];
   isDiscoveryOpen = true;
 
-  // ทุกครั้งที่เปิดกลุ่มดาวใหม่ ให้ซ่อนปุ่มปิดไว้ก่อน
+  // ซ่อนปุ่มปิดไว้ก่อนจนกว่าวิดีโอจะเล่นครบ 1 รอบ
   discoveryVideo.pause();
   discoveryVideo.loop = true;
   discoveryVideo.currentTime = 0;
@@ -1029,20 +1174,52 @@ function openConstellationInfo(zone) {
     closeDiscoveryButton.classList.add("is-visible");
   }
 
-  discoverySymbol.textContent = info.symbol || "CONSTELLATION";
-  discoveryTitle.textContent =
-    (info.thaiName || zone.name) + " — " + (info.name || zone.name);
+  // 1. อัปเดตชื่อราศีด้านนอกกล่อง Liquid Glass
+  discoveryTitleEn.textContent = info.name || zone.name;
+  discoveryIcon.textContent = info.icon || (info.symbol ? info.symbol.split(" ")[0] : "★");
+  discoveryTitleTh.textContent = info.thaiZodiac || info.thaiName || zone.name;
+
+  // 2. อัปเดตวันที่และธาตุด้านในกล่อง
+  const metaParts = [];
+  if (info.dateRange) metaParts.push(info.dateRange);
+  if (info.element) metaParts.push(info.element);
+  if (metaParts.length > 0) {
+    discoveryMeta.textContent = metaParts.join("  |  ");
+    discoveryMeta.style.display = "block";
+  } else {
+    discoveryMeta.style.display = "none";
+  }
+
+  // 3. อัปเดตคำอธิบาย
   discoveryDescription.textContent =
     info.description || "ยังไม่มีคำอธิบายสำหรับกลุ่มดาวนี้";
 
+  // 4. อัปเดตจุดเด่นและจุดที่ควรระวัง (ถ้ามี)
+  discoveryTraits.innerHTML = "";
+  if (info.strengths) {
+    const liStrength = document.createElement("li");
+    liStrength.innerHTML = `<strong>จุดเด่น:</strong> ${info.strengths}`;
+    discoveryTraits.appendChild(liStrength);
+  }
+  if (info.weaknesses) {
+    const liWeakness = document.createElement("li");
+    liWeakness.innerHTML = `<strong>จุดที่ควรระวัง:</strong> ${info.weaknesses}`;
+    discoveryTraits.appendChild(liWeakness);
+  }
+  discoveryTraits.style.display = discoveryTraits.children.length > 0 ? "block" : "none";
+
+  // รีเซ็ตตำแหน่งการเลื่อนกลับไปด้านบนสุดเสมอ
+  if (discoveryScrollBox) {
+    discoveryScrollBox.scrollTop = 0;
+  }
+
   videoFallback.style.display = "none";
   videoFallback.textContent =
-    "ยังไม่มีไฟล์ Animation ของกลุ่มดาวนี้\\nนำไฟล์วิดีโอไปใส่ในโฟลเดอร์ animations แล้วตั้งชื่อให้ตรงกับราศีได้เลย";
+    "ยังไม่มีไฟล์ Animation ของกลุ่มดาวนี้\nนำไฟล์วิดีโอไปใส่ในโฟลเดอร์ animations แล้วตั้งชื่อให้ตรงกับราศีได้เลย";
 
   discoveryVideo.onerror = () => {
     discoveryVideo.style.display = "none";
     videoFallback.style.display = "flex";
-    // หากเล่นไม่ได้ ให้ผู้ใช้ปิดหน้าข้อมูลได้ ไม่ติดค้าง
     revealCloseButton();
   };
 
@@ -1055,8 +1232,6 @@ function openConstellationInfo(zone) {
     videoStarted = true;
   };
 
-  // วิดีโอมี loop=true จึงตรวจจับการเล่นครบหนึ่งรอบด้วย currentTime
-  // เมื่อเวลาเล่นเกือบถึงท้ายคลิป จึงค่อยแสดงปุ่ม ×
   discoveryVideo.ontimeupdate = () => {
     const duration = discoveryVideo.duration;
     const currentTime = discoveryVideo.currentTime;
@@ -1088,7 +1263,6 @@ function openConstellationInfo(zone) {
       videoFallback.style.display = "flex";
       videoFallback.textContent =
         "ไม่สามารถเล่นวิดีโออัตโนมัติได้ กรุณาตรวจสอบไฟล์ Animation";
-      // ป้องกันกรณี autoplay ถูกบล็อกจนไม่สามารถออกจากหน้านี้ได้
       revealCloseButton();
     });
   } else {
@@ -1112,18 +1286,12 @@ function closeConstellationInfo() {
   discoveryVideo.removeAttribute("src");
   discoveryVideo.load();
   closeDiscoveryButton.classList.remove("is-visible");
-
-  // ไม่ปิดกล้อง ไม่รีเซ็ตการล็อก และไม่เปลี่ยนพิกัดล่าสุด
-  // processVideo จะทำงานต่อเองเมื่อปิดหน้าต่าง
 }
 
 runAnimationButton.addEventListener("click", () => {
   if (!discoveryReady || !discoveredZone || isDiscoveryOpen) return;
 
   const selectedConstellation = discoveredZone;
-
-  // เก็บระบบส่ง XY ไป TouchDesigner ตามเดิม
-  // แต่การเล่น Animation จะเกิดบนหน้าเว็บไซต์ ไม่ส่งคำสั่งไป TD
   openConstellationInfo(selectedConstellation);
 
   hideDiscoveryButton();
@@ -1289,8 +1457,6 @@ function extractCandidates(srcMat, width, height) {
 
         const aspect = w / Math.max(h, 1);
 
-        // Accept both landscape and portrait screen framing.
-        // The previous 1.10 lower limit rejected portrait orientation.
         if (aspect < 0.35 || aspect > 2.80) continue;
 
         candidates.push({
@@ -1707,7 +1873,6 @@ function trackScreen(gray) {
     displayCoordinates(lastGoodXY.x, lastGoodXY.y);
     sendXYToTouchDesigner(lastGoodXY.x, lastGoodXY.y);
 
-    // ตรวจจับเขตกลุ่มดาวจาก X/Y ล่าสุด
     updateZoneDetection(lastGoodXY.x, lastGoodXY.y);
 
     return true;
@@ -1783,8 +1948,6 @@ function drawFeatures(mat, points) {
 function processVideo() {
   if (!isProcessing) return;
 
-  // ระหว่างเปิดข้อมูลกลุ่มดาว ให้ค้างภาพและพิกัดล่าสุดไว้
-  // แต่ยังคงกล้องที่เปิดอยู่ ไม่ต้องปิดหรือเริ่มกล้องใหม่
   if (isDiscoveryOpen) {
     requestAnimationFrame(processVideo);
     return;
@@ -1866,7 +2029,6 @@ function processVideo() {
         setTargetStatus(true);
         setTrackingStatus(true);
 
-        // สถานะการค้นพบถูกอัปเดตใน updateZoneDetection()
         if (!discoveryReady && !waitingForExit) {
           status.textContent =
             "ล็อกจอแล้ว / กำลังติดตามภาพดาว";
@@ -1878,7 +2040,6 @@ function processVideo() {
         setTargetStatus(true);
         setTrackingStatus(false);
 
-        // หากภาพติดตามหาย ให้ซ่อนปุ่มเลือกกลุ่มดาว
         resetZoneDetection();
 
         displayCoordinates(
@@ -1944,7 +2105,6 @@ function resetTracker() {
   displayCoordinates(0.5, 0.5);
 }
 
-// รีเซ็ตการล็อกสี่เหลี่ยม โดยไม่ปิดกล้อง
 resetTrackingButton.addEventListener("click", () => {
   if (!stream || !isProcessing) {
     status.textContent = "กรุณาเปิดกล้องก่อนรีเซ็ตการตรวจจับ";
